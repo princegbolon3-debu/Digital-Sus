@@ -1,0 +1,6 @@
+{
+  "name": "Digital Susu",
+  "description": "Digital Susu savings and rotating credit association management system for tracking members, contributions, cycles, verified payouts, receipts, and audit trails.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
