@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.AuditLog
+import com.example.data.model.GroupMember
 import com.example.data.model.Payment
 import com.example.data.model.SusuGroup
 import com.example.data.model.User
@@ -32,6 +33,7 @@ import com.example.ui.theme.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.example.ui.components.*
 import java.util.Locale
 
 @Composable
@@ -40,11 +42,17 @@ fun AdminDashboardScreen(
     groups: List<SusuGroup>,
     payments: List<Payment>,
     auditLogs: List<AuditLog>,
+    allGroupMembers: List<GroupMember> = emptyList(),
     onRegisterUser: () -> Unit,
     onApproveUser: (userId: Long) -> Unit = {},
+    onApproveUserWithGroup: (userId: Long, groupId: Long?, role: String, position: Int?) -> Unit = { _, _, _, _ -> },
+    onAssignUserToGroup: (groupId: Long, userId: Long, role: String, position: Int?) -> Unit = { _, _, _, _ -> },
+    onAssignOrganizer: (groupId: Long, organizerId: Long) -> Unit = { _, _ -> },
+    onRemoveMemberFromGroup: (groupId: Long, userId: Long) -> Unit = { _, _ -> },
     onSuspendUser: (userId: Long) -> Unit = {},
     onDeleteUser: (userId: Long) -> Unit = {},
     onCreateGroup: () -> Unit = {},
+    onCreateNewGroupForUser: (user: User) -> Unit = {},
     onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -52,6 +60,64 @@ fun AdminDashboardScreen(
     var searchQuery by remember { mutableStateOf("") }
     var adminViewTab by remember { mutableIntStateOf(0) } // 0: Overview & Audit, 1: Users Management, 2: Groups Oversight, 3: MoMo APIs
     val coroutineScope = rememberCoroutineScope()
+
+    var userToApprove by remember { mutableStateOf<User?>(null) }
+    var userToAssign by remember { mutableStateOf<User?>(null) }
+    var groupToAssignMember by remember { mutableStateOf<SusuGroup?>(null) }
+    var groupToAssignOrganizer by remember { mutableStateOf<SusuGroup?>(null) }
+
+    // Dialogs
+    userToApprove?.let { user ->
+        ApproveAndAssignDialog(
+            user = user,
+            groups = groups,
+            onDismiss = { userToApprove = null },
+            onConfirm = { grpId, role, pos ->
+                onApproveUserWithGroup(user.id, grpId, role, pos)
+                userToApprove = null
+            },
+            onCreateNewGroupForUser = { targetUser ->
+                userToApprove = null
+                onCreateNewGroupForUser(targetUser)
+            }
+        )
+    }
+
+    userToAssign?.let { user ->
+        AssignUserToGroupDialog(
+            user = user,
+            groups = groups,
+            onDismiss = { userToAssign = null },
+            onConfirm = { grpId, role, pos ->
+                onAssignUserToGroup(grpId, user.id, role, pos)
+                userToAssign = null
+            }
+        )
+    }
+
+    groupToAssignMember?.let { grp ->
+        AddMemberToGroupDialog(
+            group = grp,
+            users = users,
+            onDismiss = { groupToAssignMember = null },
+            onConfirm = { usrId, role, pos ->
+                onAssignUserToGroup(grp.id, usrId, role, pos)
+                groupToAssignMember = null
+            }
+        )
+    }
+
+    groupToAssignOrganizer?.let { grp ->
+        AssignOrganizerDialog(
+            group = grp,
+            users = users,
+            onDismiss = { groupToAssignOrganizer = null },
+            onConfirm = { orgId ->
+                onAssignOrganizer(grp.id, orgId)
+                groupToAssignOrganizer = null
+            }
+        )
+    }
 
     val totalVolume = payments.filter { it.status == "VERIFIED" }.sumOf { it.amount }
     val pendingVerifications = payments.count { it.status == "SUBMITTED" }
@@ -343,10 +409,53 @@ fun AdminDashboardScreen(
                                 }
 
                                 Text(
-                                    text = "New members and organizers who registered must be accepted by Prince Gbolon before they can log in.",
+                                    text = "Tap 'Review & Approve' to choose which Susu group to place them in, create a new circle, or approve without group.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = SusuOnGoldContainer
                                 )
+
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    pendingList.forEach { applicant ->
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = MaterialTheme.colorScheme.surface,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                                        Text(applicant.fullName, fontWeight = FontWeight.Bold)
+                                                        Surface(
+                                                            shape = RoundedCornerShape(4.dp),
+                                                            color = if (applicant.role == "ORGANIZER") SusuGoldContainer else SusuEmeraldContainer
+                                                        ) {
+                                                            Text(
+                                                                applicant.role,
+                                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                                                fontSize = 10.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = if (applicant.role == "ORGANIZER") SusuGoldDark else SusuEmeraldDark
+                                                            )
+                                                        }
+                                                    }
+                                                    Text(applicant.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                }
+                                                Button(
+                                                    onClick = { userToApprove = applicant },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                                ) {
+                                                    Text("Review & Approve ❯", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -445,11 +554,20 @@ fun AdminDashboardScreen(
                             ) {
                                 if (user.status == "PENDING_APPROVAL") {
                                     Button(
-                                        onClick = { onApproveUser(user.id) },
+                                        onClick = { userToApprove = user },
                                         colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1.2f)
                                     ) {
-                                        Text("Approve Account ✓")
+                                        Text("Approve & Assign ❯")
+                                    }
+                                } else if (user.role != "ADMIN") {
+                                    OutlinedButton(
+                                        onClick = { userToAssign = user },
+                                        modifier = Modifier.weight(1.2f)
+                                    ) {
+                                        Icon(Icons.Default.GroupAdd, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Assign Group")
                                     }
                                 }
 
@@ -553,6 +671,160 @@ fun AdminDashboardScreen(
                             ) {
                                 Text("Group Status:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 StatusBadge(status = group.status)
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+
+                            // Assigned Organizer details
+                            val organizer = users.find { it.id == group.organizerId }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(SusuGoldContainer.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                    .padding(10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Group Organizer:", style = MaterialTheme.typography.labelSmall, color = SusuOnGoldContainer)
+                                    Text(organizer?.fullName ?: "Unassigned", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
+                                    Text(organizer?.phone ?: "No phone registered", style = MaterialTheme.typography.bodySmall, color = SusuOnGoldContainer.copy(alpha = 0.8f))
+                                }
+                                OutlinedButton(
+                                    onClick = { groupToAssignOrganizer = group },
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Icon(Icons.Default.AdminPanelSettings, contentDescription = null, modifier = Modifier.size(14.dp), tint = SusuGoldDark)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Change", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SusuGoldDark)
+                                }
+                            }
+
+                            // Enrolled Members list
+                            val groupMems = allGroupMembers.filter { it.groupId == group.id }
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Enrolled Members (${groupMems.size}/${group.numberOfCycles})",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "Turn Slots",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                if (groupMems.isNotEmpty()) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        groupMems.forEach { gm ->
+                                            val memUser = users.find { it.id == gm.userId }
+                                            val isOrg = gm.userId == group.organizerId
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                        modifier = Modifier.weight(1f)
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(24.dp)
+                                                                .clip(CircleShape)
+                                                                .background(if (isOrg) SusuGoldContainer else SusuEmeraldContainer),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Text(
+                                                                text = "#${gm.payoutPosition}",
+                                                                fontSize = 10.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = if (isOrg) SusuGoldDark else SusuEmeraldDark
+                                                            )
+                                                        }
+                                                        Column {
+                                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                                                Text(
+                                                                    memUser?.fullName ?: "Member #${gm.userId}",
+                                                                    fontWeight = FontWeight.SemiBold,
+                                                                    fontSize = 13.sp
+                                                                )
+                                                                if (isOrg) {
+                                                                    Surface(shape = RoundedCornerShape(3.dp), color = SusuGoldContainer) {
+                                                                        Text(
+                                                                            "ORGANIZER",
+                                                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                                                            fontSize = 9.sp,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = SusuGoldDark
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                            Text(memUser?.phone ?: "", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                        }
+                                                    }
+
+                                                    if (!isOrg) {
+                                                        IconButton(
+                                                            onClick = { onRemoveMemberFromGroup(group.id, gm.userId) },
+                                                            modifier = Modifier.size(28.dp)
+                                                        ) {
+                                                            Icon(Icons.Default.Close, contentDescription = "Remove", tint = Color.Gray, modifier = Modifier.size(16.dp))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Text(
+                                        text = "No members enrolled in this circle yet. Tap '+ Add Member' below to enroll users.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { groupToAssignMember = group },
+                                    colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                                    modifier = Modifier.weight(1.3f),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("+ Add Member", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                }
+
+                                OutlinedButton(
+                                    onClick = { groupToAssignOrganizer = group },
+                                    modifier = Modifier.weight(1.1f),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(Icons.Default.AdminPanelSettings, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Organizer", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                }
                             }
                         }
                     }

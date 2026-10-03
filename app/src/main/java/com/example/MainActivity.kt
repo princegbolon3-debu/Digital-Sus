@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
                 val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
                 val allUsers by viewModel.allUsers.collectAsStateWithLifecycle()
                 val allGroups by viewModel.allGroups.collectAsStateWithLifecycle()
+                val userGroups by viewModel.userGroups.collectAsStateWithLifecycle()
                 val selectedGroup by viewModel.selectedGroup.collectAsStateWithLifecycle()
                 val selectedCycleNumber by viewModel.selectedCycleNumber.collectAsStateWithLifecycle()
                 val cycles by viewModel.groupCycles.collectAsStateWithLifecycle()
@@ -60,6 +61,7 @@ class MainActivity : ComponentActivity() {
                 val userReceipts by viewModel.userReceipts.collectAsStateWithLifecycle()
                 val userNotifications by viewModel.userNotifications.collectAsStateWithLifecycle()
                 val auditLogs by viewModel.allAuditLogs.collectAsStateWithLifecycle()
+                val allGroupMembers by viewModel.allGroupMembers.collectAsStateWithLifecycle()
                 val allPayments by viewModel.allPayments.collectAsStateWithLifecycle()
                 val roomMembers by viewModel.membersList.collectAsStateWithLifecycle()
 
@@ -67,6 +69,7 @@ class MainActivity : ComponentActivity() {
                 var showEditProfileDialog by remember { mutableStateOf(false) }
                 var showRegisterDialog by remember { mutableStateOf(false) }
                 var showCreateGroupDialog by remember { mutableStateOf(false) }
+                var userToCreateGroupFor by remember { mutableStateOf<User?>(null) }
                 var showJoinGroupDialog by remember { mutableStateOf(false) }
                 var showGroupDropdown by remember { mutableStateOf(false) }
                 var showHowItWorksDialog by remember { mutableStateOf(false) }
@@ -121,10 +124,18 @@ class MainActivity : ComponentActivity() {
 
                 if (showCreateGroupDialog) {
                     CreateGroupDialog(
-                        onDismiss = { showCreateGroupDialog = false },
-                        onCreate = { name, code, desc, amt, freq, cyc ->
-                            viewModel.createGroup(name, code, desc, amt, freq, cyc) {
+                        allUsers = allUsers,
+                        currentUserId = currentUser?.id ?: 1L,
+                        preselectedOrganizerId = if (userToCreateGroupFor?.role == "ORGANIZER") userToCreateGroupFor?.id else null,
+                        preselectedMemberIds = if (userToCreateGroupFor != null && userToCreateGroupFor?.role != "ORGANIZER") listOf(userToCreateGroupFor!!.id) else emptyList(),
+                        onDismiss = {
+                            showCreateGroupDialog = false
+                            userToCreateGroupFor = null
+                        },
+                        onCreate = { name, code, desc, amt, freq, cyc, organizerId, memberIds ->
+                            viewModel.createGroup(name, code, desc, amt, freq, cyc, organizerId, memberIds) {
                                 showCreateGroupDialog = false
+                                userToCreateGroupFor = null
                             }
                         }
                     )
@@ -323,11 +334,31 @@ class MainActivity : ComponentActivity() {
                                             groups = allGroups,
                                             payments = allPayments,
                                             auditLogs = auditLogs,
+                                            allGroupMembers = allGroupMembers,
                                             onRegisterUser = { showRegisterDialog = true },
                                             onApproveUser = { id -> viewModel.approveUser(id) },
+                                            onApproveUserWithGroup = { id, grpId, role, pos ->
+                                                viewModel.approveUser(id, grpId, role, pos)
+                                            },
+                                            onAssignUserToGroup = { grpId, usrId, role, pos ->
+                                                viewModel.addUserToGroup(grpId, usrId, role, pos)
+                                            },
+                                            onAssignOrganizer = { grpId, orgId ->
+                                                viewModel.assignGroupOrganizer(grpId, orgId)
+                                            },
+                                            onRemoveMemberFromGroup = { grpId, uId ->
+                                                viewModel.removeMemberFromGroup(grpId, uId)
+                                            },
                                             onSuspendUser = { id -> viewModel.suspendUser(id) },
                                             onDeleteUser = { id -> viewModel.deleteUser(id) },
-                                            onCreateGroup = { showCreateGroupDialog = true },
+                                            onCreateGroup = {
+                                                userToCreateGroupFor = null
+                                                showCreateGroupDialog = true
+                                            },
+                                            onCreateNewGroupForUser = { targetUser ->
+                                                userToCreateGroupFor = targetUser
+                                                showCreateGroupDialog = true
+                                            },
                                             onLogout = { viewModel.logout() }
                                         )
 
@@ -912,7 +943,7 @@ class MainActivity : ComponentActivity() {
                                         )
 
                                         2 -> ReceiptsScreen(
-                                            receipts = userReceipts.ifEmpty { allReceipts }
+                                            receipts = userReceipts
                                         )
 
                                         3 -> NotificationsScreen(

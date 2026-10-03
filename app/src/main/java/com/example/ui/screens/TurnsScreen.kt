@@ -197,7 +197,7 @@ fun TurnsScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = item.user.fullName,
+                                text = if (isMe) item.user.fullName else maskMemberName(item.user.fullName),
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyLarge
                             )
@@ -225,7 +225,7 @@ fun TurnsScreen(
                         )
                     }
 
-                    // Status / Pot
+                    // Status / Pot - Hidden for peer members to protect financial privacy
                     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         if (isCurrentTurn) {
                             Surface(shape = RoundedCornerShape(8.dp), color = SusuGold) {
@@ -237,12 +237,30 @@ fun TurnsScreen(
                                     color = Color.Black
                                 )
                             }
-                        } else {
+                        } else if (isMe) {
                             StatusBadge(status = item.currentCycleContribution?.status ?: "UNPAID")
+                        } else {
+                            Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                Text(
+                                    text = "Turn #${item.membership.payoutPosition}",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+private fun maskMemberName(fullName: String): String {
+    val parts = fullName.trim().split(" ")
+    return if (parts.size >= 2) {
+        "${parts[0]} ${parts[1].firstOrNull()?.uppercaseChar() ?: ""}."
+    } else {
+        parts[0]
     }
 }

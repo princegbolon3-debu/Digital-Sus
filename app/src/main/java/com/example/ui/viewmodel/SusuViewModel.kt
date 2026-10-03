@@ -7,6 +7,7 @@ import com.example.data.local.SusuDatabase
 import com.example.data.model.AuditLog
 import com.example.data.model.ContributionCycle
 import com.example.data.model.CycleFinancialSummary
+import com.example.data.model.GroupMember
 import com.example.data.model.Member
 import com.example.data.model.MemberWithPosition
 import com.example.data.model.NotificationItem
@@ -92,18 +93,35 @@ class SusuViewModel(application: Application) : AndroidViewModel(application) {
     val allAuditLogs: StateFlow<List<AuditLog>> = repository.allAuditLogs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val allGroupMembers: StateFlow<List<GroupMember>> = repository.allGroupMembers
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val pendingUsers: StateFlow<List<User>> = repository.pendingUsers
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Scoped groups based on active user's permissions and memberships
+    val userGroups: StateFlow<List<SusuGroup>> = _currentUser.flatMapLatest { user ->
+        when {
+            user == null -> flowOf(emptyList())
+            user.role == "ADMIN" -> repository.allGroups
+            user.role == "ORGANIZER" -> repository.getGroupsForUserOrOrganizer(user.id)
+            else -> repository.getGroupsForUser(user.id)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     init {
-        // Automatically select first group when available
+        // Automatically sync selectedGroup with user's accessible groups
         viewModelScope.launch {
-            repository.allGroups.collect { groups ->
-                if (_selectedGroup.value == null && groups.isNotEmpty()) {
-                    val group = groups.first()
-                    _selectedGroup.value = group
-                    _selectedCycleNumber.value = group.currentCycle
-                    refreshCycleSummary(group.id, group.currentCycle)
+            userGroups.collect { groups ->
+                val current = _selectedGroup.value
+                if (groups.isEmpty()) {
+                    _selectedGroup.value = null
+                    _cycleSummary.value = null
+                } else if (current == null || groups.none { it.id == current.id }) {
+                    val firstGrp = groups.first()
+                    _selectedGroup.value = firstGrp
+                    _selectedCycleNumber.value = firstGrp.currentCycle
+                    refreshCycleSummary(firstGrp.id, firstGrp.currentCycle)
                 }
             }
         }
@@ -323,7 +341,7 @@ class SusuViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Create group
+    // Create group (with optional specified organizer and initial members)
     fun createGroup(
         name: String,
         code: String,
@@ -331,18 +349,22 @@ class SusuViewModel(application: Application) : AndroidViewModel(application) {
         contributionAmount: Double,
         frequency: String,
         numberOfCycles: Int,
+        organizerId: Long? = null,
+        initialMemberIds: List<Long> = emptyList(),
         onSuccess: (Long) -> Unit = {}
     ) {
         val user = _currentUser.value ?: return
+        val orgId = organizerId ?: user.id
         viewModelScope.launch {
             when (val result = repository.createGroup(
                 name = name,
                 code = code,
                 description = description,
-                organizerId = user.id,
+                organizerId = orgId,
                 contributionAmount = contributionAmount,
                 frequency = frequency,
-                numberOfCycles = numberOfCycles
+                numberOfCycles = numberOfCycles,
+                initialMemberIds = initialMemberIds
             )) {
                 is OperationResult.Success -> {
                     _uiFeedback.emit(UiFeedback(result.message ?: "Group created!"))
@@ -441,6 +463,8 @@ class SusuViewModel(application: Application) : AndroidViewModel(application) {
     // Logout
     fun logout() {
         _currentUser.value = null
+        _selectedGroup.value = null
+        _cycleSummary.value = null
         viewModelScope.launch {
             _uiFeedback.emit(UiFeedback("Signed out"))
         }
@@ -458,13 +482,102 @@ class SusuViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Approve member account
-    fun approveUser(userId: Long) {
+    // Approve member account with optional group assignment
+    fun approveUser(
+        userId: Long,
+        assignGroupId: Long? = null,
+        roleInGroup: String = "MEMBER",
+        customPosition: Int? = null,
+        onSuccess: () -> Unit = {}
+    ) {
         val approver = _currentUser.value ?: return
         viewModelScope.launch {
-            when (val result = repository.approveUser(userId, approver.id)) {
+            when (val result = repository.approveUser(
+                userId = userId,
+                approverId = approver.id,
+                assignToGroupId = assignGroupId,
+                roleInGroup = roleInGroup,
+                customPosition = customPosition
+            )) {
                 is OperationResult.Success -> {
-                    _uiFeedback.emit(UiFeedback(result.message ?: "Member account approved!"))
+                    _uiFeedback.emit(UiFeedback(result.message ?: "Account approved successfully!"))
+                    onSuccess()
+                }
+                is OperationResult.Error -> {
+                    _uiFeedback.emit(UiFeedback(result.message, isError = true))
+                }
+            }
+        }
+    }
+
+    // Assign any active user directly to a Susu group
+    fun addUserToGroup(
+        groupId: Long,
+        userId: Long,
+        roleInGroup: String = "MEMBER",
+        customPosition: Int? = null,
+        onSuccess: () -> Unit = {}
+    ) {
+        val approver = _currentUser.value ?: return
+        viewModelScope.launch {
+            when (val result = repository.addUserToGroup(
+                groupId = groupId,
+                userId = userId,
+                roleInGroup = roleInGroup,
+                customPosition = customPosition,
+                approverId = approver.id
+            )) {
+                is OperationResult.Success -> {
+                    _uiFeedback.emit(UiFeedback(result.message ?: "User assigned to group!"))
+                    onSuccess()
+                }
+                is OperationResult.Error -> {
+                    _uiFeedback.emit(UiFeedback(result.message, isError = true))
+                }
+            }
+        }
+    }
+
+    // Assign / Change Organizer for a group
+    fun assignGroupOrganizer(
+        groupId: Long,
+        organizerId: Long,
+        onSuccess: () -> Unit = {}
+    ) {
+        val approver = _currentUser.value ?: return
+        viewModelScope.launch {
+            when (val result = repository.assignGroupOrganizer(
+                groupId = groupId,
+                organizerId = organizerId,
+                approverId = approver.id
+            )) {
+                is OperationResult.Success -> {
+                    _uiFeedback.emit(UiFeedback(result.message ?: "Organizer assigned successfully!"))
+                    onSuccess()
+                }
+                is OperationResult.Error -> {
+                    _uiFeedback.emit(UiFeedback(result.message, isError = true))
+                }
+            }
+        }
+    }
+
+    // Remove a member from a group
+    fun removeMemberFromGroup(
+        groupId: Long,
+        userId: Long,
+        onSuccess: () -> Unit = {}
+    ) {
+        val actor = _currentUser.value ?: return
+        viewModelScope.launch {
+            when (val result = repository.removeMemberFromGroup(
+                groupId = groupId,
+                userId = userId,
+                actorId = actor.id
+            )) {
+                is OperationResult.Success -> {
+                    _uiFeedback.emit(UiFeedback(result.message ?: "Member removed from group."))
+                    onSuccess()
                 }
                 is OperationResult.Error -> {
                     _uiFeedback.emit(UiFeedback(result.message, isError = true))

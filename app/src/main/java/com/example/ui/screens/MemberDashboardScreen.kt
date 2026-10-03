@@ -728,7 +728,7 @@ fun MemberDashboardScreen(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Text(
-                                    text = item.user.fullName,
+                                    text = if (isMe) item.user.fullName else maskMemberName(item.user.fullName),
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -744,13 +744,35 @@ fun MemberDashboardScreen(
                                 }
                             }
                             Text(
-                                text = if (item.membership.payoutPosition == currentCycle) "Receiving pot this cycle" else "Turn #${item.membership.payoutPosition}",
+                                text = if (item.membership.payoutPosition == currentCycle) "Receiving pot this round" else "Turn #${item.membership.payoutPosition}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
-                        StatusBadge(status = item.currentCycleContribution?.status ?: "UNPAID")
+                        // Financial privacy protection: Only show personal payment status for the logged-in user
+                        if (isMe) {
+                            StatusBadge(status = item.currentCycleContribution?.status ?: "UNPAID")
+                        } else if (isCurrentTurn) {
+                            Surface(shape = RoundedCornerShape(6.dp), color = SusuGoldContainer) {
+                                Text(
+                                    text = "Pot Recipient",
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = SusuGoldDark,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        } else {
+                            Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                                Text(
+                                    text = "Scheduled",
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -849,5 +871,14 @@ private fun QuickActionItem(
                 fontSize = 10.sp
             )
         }
+    }
+}
+
+private fun maskMemberName(fullName: String): String {
+    val parts = fullName.trim().split(" ")
+    return if (parts.size >= 2) {
+        "${parts[0]} ${parts[1].firstOrNull()?.uppercaseChar() ?: ""}."
+    } else {
+        parts[0]
     }
 }

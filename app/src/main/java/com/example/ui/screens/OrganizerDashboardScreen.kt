@@ -163,44 +163,87 @@ fun OrganizerDashboardScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Group Header Info
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth().testTag("organizer_group_header"),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = SusuEmeraldDark)
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+        if (group == null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().testTag("organizer_no_group_card"),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column {
-                            Text("ORGANIZER CONTROL PANEL", style = MaterialTheme.typography.labelSmall, color = SusuGold, fontWeight = FontWeight.Bold)
-                            Text(group?.name ?: "Digital Susu", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(SusuEmeraldContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.AddBusiness, contentDescription = null, tint = SusuEmeraldPrimary, modifier = Modifier.size(32.dp))
                         }
-                        Surface(shape = RoundedCornerShape(8.dp), color = SusuGoldContainer) {
-                            Text(
-                                text = "Code: ${group?.groupCode ?: "-"}",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = SusuOnGoldContainer
-                            )
+                        Text("No Susu Circle Assigned Yet", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "You are approved as a Group Organizer. You can create a new Susu savings circle now to start enrolling members and tracking contributions, or wait for the Administrator to assign you to an existing circle.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Button(
+                            onClick = onCreateGroup,
+                            colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("+ Create a Susu Circle", fontWeight = FontWeight.Bold)
                         }
                     }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                }
+            }
+        } else {
+            // Group Header Info
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().testTag("organizer_group_header"),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = SusuEmeraldDark)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        QuickMetric(label = "Members", value = "${members.size}/${group?.numberOfCycles ?: 0}", color = Color.White)
-                        QuickMetric(label = "Contribution", value = "L$ ${group?.contributionAmount?.toInt() ?: 0}", color = SusuGold)
-                        QuickMetric(label = "Frequency", value = group?.frequency ?: "WEEKLY", color = Color.White)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("ORGANIZER CONTROL PANEL", style = MaterialTheme.typography.labelSmall, color = SusuGold, fontWeight = FontWeight.Bold)
+                                Text(group.name, style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+                            Surface(shape = RoundedCornerShape(8.dp), color = SusuGoldContainer) {
+                                Text(
+                                    text = "Code: ${group.groupCode}",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SusuOnGoldContainer
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            QuickMetric(label = "Members", value = "${members.size}/${group.numberOfCycles}", color = Color.White)
+                            QuickMetric(label = "Contribution", value = "L$ ${group.contributionAmount.toInt()}", color = SusuGold)
+                            QuickMetric(label = "Frequency", value = group.frequency, color = Color.White)
+                        }
                     }
                 }
             }

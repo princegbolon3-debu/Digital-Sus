@@ -1046,10 +1046,15 @@ fun UserSwitcherDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGroupDialog(
+    allUsers: List<User> = emptyList(),
+    currentUserId: Long = 1,
+    preselectedOrganizerId: Long? = null,
+    preselectedMemberIds: List<Long> = emptyList(),
     onDismiss: () -> Unit,
-    onCreate: (name: String, code: String, desc: String, amount: Double, freq: String, cycles: Int) -> Unit
+    onCreate: (name: String, code: String, desc: String, amount: Double, freq: String, cycles: Int, organizerId: Long, memberIds: List<Long>) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("SUSU-${(10..99).random()}") }
@@ -1057,6 +1062,24 @@ fun CreateGroupDialog(
     var amountText by remember { mutableStateOf("1000") }
     var frequency by remember { mutableStateOf("WEEKLY") }
     var cyclesText by remember { mutableStateOf("10") }
+    var memberSearchQuery by remember { mutableStateOf("") }
+
+    val activeUsers = allUsers.filter { it.status == "ACTIVE" || it.id == preselectedOrganizerId || preselectedMemberIds.contains(it.id) }
+    var selectedOrganizerId by remember {
+        mutableLongStateOf(
+            preselectedOrganizerId
+                ?: activeUsers.find { it.role == "ORGANIZER" }?.id
+                ?: if (activeUsers.any { it.id == currentUserId }) currentUserId else activeUsers.firstOrNull()?.id ?: 1L
+        )
+    }
+    var organizerDropdownExpanded by remember { mutableStateOf(false) }
+    val selectedMemberIds = remember {
+        mutableStateListOf<Long>().apply {
+            addAll(preselectedMemberIds.filter { it != selectedOrganizerId })
+        }
+    }
+
+    val selectedOrganizer = activeUsers.find { it.id == selectedOrganizerId } ?: activeUsers.firstOrNull()
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -1072,13 +1095,35 @@ fun CreateGroupDialog(
                     .fillMaxWidth()
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Text(
-                    text = "Create Susu Group",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SusuEmeraldContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.AddBusiness, contentDescription = null, tint = SusuEmeraldPrimary)
+                    }
+                    Column {
+                        Text(
+                            text = "Create Susu Group",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Configure savings circle, organizer & members",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                HorizontalDivider()
+
+                Text("Group Details", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = SusuEmeraldPrimary)
 
                 OutlinedTextField(
                     value = name,
@@ -1093,6 +1138,7 @@ fun CreateGroupDialog(
                     value = code,
                     onValueChange = { code = it },
                     label = { Text("Group Code (Invite Key) *") },
+                    placeholder = { Text("e.g. SINKOR-2026") },
                     modifier = Modifier.fillMaxWidth().testTag("group_code_input"),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -1101,23 +1147,33 @@ fun CreateGroupDialog(
                     value = desc,
                     onValueChange = { desc = it },
                     label = { Text("Description") },
-                    placeholder = { Text("Community goals or location") },
+                    placeholder = { Text("Community goals, meeting point or schedule") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                OutlinedTextField(
-                    value = amountText,
-                    onValueChange = { amountText = it },
-                    label = { Text("Contribution per Member (L$) *") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth().testTag("group_amount_input"),
-                    shape = RoundedCornerShape(12.dp)
-                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = amountText,
+                        onValueChange = { amountText = it },
+                        label = { Text("Contribution (L$) *") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1.2f).testTag("group_amount_input"),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    OutlinedTextField(
+                        value = cyclesText,
+                        onValueChange = { cyclesText = it },
+                        label = { Text("Capacity / Turns *") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f).testTag("group_cycles_input"),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
 
                 // Frequency selection
-                Text("Contribution Frequency", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Contribution Frequency:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY").forEach { freq ->
                         FilterChip(
                             selected = frequency == freq,
@@ -1128,14 +1184,157 @@ fun CreateGroupDialog(
                     }
                 }
 
-                OutlinedTextField(
-                    value = cyclesText,
-                    onValueChange = { cyclesText = it },
-                    label = { Text("Number of Members / Cycles *") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth().testTag("group_cycles_input"),
-                    shape = RoundedCornerShape(12.dp)
+                HorizontalDivider()
+
+                // Section: Assign Organizer
+                Text("Group Organizer", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = SusuGoldDark)
+                Text(
+                    text = "Select who will organize, verify payments, and oversee this group:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                if (activeUsers.isNotEmpty()) {
+                    ExposedDropdownMenuBox(
+                        expanded = organizerDropdownExpanded,
+                        onExpandedChange = { organizerDropdownExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedOrganizer?.let { "${it.fullName} (${it.phone}) [${it.role}]" } ?: "Select Organizer",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Assigned Organizer *") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = organizerDropdownExpanded) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = organizerDropdownExpanded,
+                            onDismissRequest = { organizerDropdownExpanded = false }
+                        ) {
+                            activeUsers.forEach { user ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                                Text(user.fullName, fontWeight = FontWeight.Bold)
+                                                Surface(
+                                                    shape = RoundedCornerShape(4.dp),
+                                                    color = if (user.role == "ORGANIZER") SusuGoldContainer else MaterialTheme.colorScheme.surfaceVariant
+                                                ) {
+                                                    Text(user.role, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                            Text(user.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedOrganizerId = user.id
+                                        selectedMemberIds.remove(user.id)
+                                        organizerDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider()
+
+                // Section: Add Initial Members
+                val eligibleMembers = activeUsers.filter { it.id != selectedOrganizerId }
+                val filteredEligible = if (memberSearchQuery.isBlank()) eligibleMembers else {
+                    eligibleMembers.filter { it.fullName.contains(memberSearchQuery, ignoreCase = true) || it.phone.contains(memberSearchQuery) }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Add Group Members", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = SusuEmeraldPrimary)
+                        Text(
+                            text = "${selectedMemberIds.size} members selected (1 Organizer + ${selectedMemberIds.size} Members = ${selectedMemberIds.size + 1})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SusuEmeraldDark,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    if (eligibleMembers.isNotEmpty()) {
+                        TextButton(
+                            onClick = {
+                                if (selectedMemberIds.size == eligibleMembers.size) {
+                                    selectedMemberIds.clear()
+                                } else {
+                                    selectedMemberIds.clear()
+                                    selectedMemberIds.addAll(eligibleMembers.map { it.id })
+                                }
+                            }
+                        ) {
+                            Text(if (selectedMemberIds.size == eligibleMembers.size) "Clear" else "Select All")
+                        }
+                    }
+                }
+
+                if (eligibleMembers.size > 4) {
+                    OutlinedTextField(
+                        value = memberSearchQuery,
+                        onValueChange = { memberSearchQuery = it },
+                        placeholder = { Text("Filter members by name or phone...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+
+                if (filteredEligible.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        filteredEligible.forEach { mem ->
+                            val isSelected = selectedMemberIds.contains(mem.id)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) SusuEmeraldContainer.copy(alpha = 0.5f) else Color.Transparent)
+                                    .clickable {
+                                        if (isSelected) selectedMemberIds.remove(mem.id)
+                                        else selectedMemberIds.add(mem.id)
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text(mem.fullName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                                        Text("(${mem.role})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Text(mem.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { checked ->
+                                        if (checked) selectedMemberIds.add(mem.id)
+                                        else selectedMemberIds.remove(mem.id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else if (eligibleMembers.isEmpty()) {
+                    Text(
+                        text = "No additional users registered yet. You can create the group now and enroll members later!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
@@ -1145,13 +1344,681 @@ fun CreateGroupDialog(
                         onClick = {
                             val amt = amountText.toDoubleOrNull() ?: 1000.0
                             val cyc = cyclesText.toIntOrNull() ?: 10
-                            onCreate(name, code, desc, amt, frequency, cyc)
+                            onCreate(name, code, desc, amt, frequency, cyc, selectedOrganizerId, selectedMemberIds.toList())
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
                         modifier = Modifier.weight(1.5f).testTag("confirm_create_group_button"),
-                        enabled = name.isNotBlank() && code.isNotBlank()
+                        enabled = name.isNotBlank() && code.isNotBlank() && selectedOrganizerId > 0
                     ) {
                         Text("Create Susu")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ApproveAndAssignDialog(
+    user: User,
+    groups: List<SusuGroup>,
+    onDismiss: () -> Unit,
+    onConfirm: (assignGroupId: Long?, roleInGroup: String, customPosition: Int?) -> Unit,
+    onCreateNewGroupForUser: (user: User) -> Unit = {}
+) {
+    // 0: Assign to an Existing Group, 1: Create a Brand New Group, 2: Approve Account Only (No Group)
+    var selectedOption by remember { mutableIntStateOf(if (groups.isNotEmpty()) 0 else 1) }
+    // Start with 0L (no pre-selection) so user is NEVER accidentally defaulted to West Point Susu!
+    var selectedGroupId by remember { mutableLongStateOf(0L) }
+    var roleInGroup by remember { mutableStateOf(if (user.role == "ORGANIZER") "ORGANIZER" else "MEMBER") }
+    var positionText by remember { mutableStateOf("") }
+    var groupDropdownExpanded by remember { mutableStateOf(false) }
+
+    val selectedGroup = groups.find { it.id == selectedGroupId }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .testTag("approve_assign_dialog"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SusuEmeraldContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SusuEmeraldPrimary)
+                    }
+                    Column {
+                        Text("Approve Account", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(user.fullName, style = MaterialTheme.typography.bodyMedium, color = SusuEmeraldPrimary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Phone: ${user.phone}", style = MaterialTheme.typography.bodySmall)
+                        if (user.email.isNotBlank()) {
+                            Text("Email: ${user.email}", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Registered Role:", style = MaterialTheme.typography.bodySmall)
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (user.role == "ORGANIZER") SusuGoldContainer else SusuEmeraldContainer
+                            ) {
+                                Text(
+                                    text = user.role,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (user.role == "ORGANIZER") SusuGoldDark else SusuEmeraldDark
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Text(
+                    text = "Where should ${user.fullName} be placed?",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // 3 Options Tab Selector
+                TabRow(
+                    selectedTabIndex = selectedOption,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    contentColor = SusuEmeraldPrimary,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                ) {
+                    Tab(
+                        selected = selectedOption == 0,
+                        onClick = { selectedOption = 0 },
+                        text = { Text("Existing Group", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                        enabled = groups.isNotEmpty()
+                    )
+                    Tab(
+                        selected = selectedOption == 1,
+                        onClick = { selectedOption = 1 },
+                        text = { Text("+ New Group", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                    )
+                    Tab(
+                        selected = selectedOption == 2,
+                        onClick = { selectedOption = 2 },
+                        text = { Text("No Group", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                    )
+                }
+
+                when (selectedOption) {
+                    0 -> {
+                        // Option 0: Add to a specific existing group (requires explicit selection)
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(
+                                text = "Select which Susu group to enroll ${user.fullName} into:",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            ExposedDropdownMenuBox(
+                                expanded = groupDropdownExpanded,
+                                onExpandedChange = { groupDropdownExpanded = it }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedGroup?.let { "${it.name} (${it.groupCode})" } ?: "👉 Tap to choose a Susu group *",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Target Susu Group *") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = groupDropdownExpanded) },
+                                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = groupDropdownExpanded,
+                                    onDismissRequest = { groupDropdownExpanded = false }
+                                ) {
+                                    groups.forEach { grp ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Column {
+                                                    Text(grp.name, fontWeight = FontWeight.Bold)
+                                                    Text("Code: ${grp.groupCode} • L$ ${grp.contributionAmount.toInt()} / ${grp.frequency.lowercase()}", style = MaterialTheme.typography.bodySmall)
+                                                }
+                                            },
+                                            onClick = {
+                                                selectedGroupId = grp.id
+                                                groupDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (selectedGroup != null) {
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = SusuEmeraldContainer.copy(alpha = 0.4f),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text("Selected: ${selectedGroup.name}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                                        Text("Group Code: ${selectedGroup.groupCode} • Contribution: L$ ${selectedGroup.contributionAmount.toInt()} (${selectedGroup.frequency})", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+
+                            // Role in group
+                            Text("Role in Group:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterChip(
+                                    selected = roleInGroup == "MEMBER",
+                                    onClick = { roleInGroup = "MEMBER" },
+                                    label = { Text("Member") },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                FilterChip(
+                                    selected = roleInGroup == "ORGANIZER",
+                                    onClick = { roleInGroup = "ORGANIZER" },
+                                    label = { Text("Organizer") },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = positionText,
+                                onValueChange = { positionText = it },
+                                label = { Text("Rotation Position (Optional)") },
+                                placeholder = { Text("Auto-assign next turn slot") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                    }
+
+                    1 -> {
+                        // Option 1: Create a brand new Susu group for this user
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = SusuGoldContainer)
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Icon(Icons.Default.AddBusiness, contentDescription = null, tint = SusuGoldDark)
+                                    Text("Create a New Susu Group", fontWeight = FontWeight.Bold, color = SusuOnGoldContainer)
+                                }
+                                Text(
+                                    text = if (user.role == "ORGANIZER")
+                                        "Approve ${user.fullName} and immediately open the Group Creator with them designated as the Group Organizer."
+                                    else
+                                        "Approve ${user.fullName} and immediately create a new Susu group with them enrolled as an initial member.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = SusuOnGoldContainer
+                                )
+                            }
+                        }
+                    }
+
+                    2 -> {
+                        // Option 2: Approve account without adding to any group
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = SusuEmeraldPrimary)
+                                    Text("Approve Without Any Group", fontWeight = FontWeight.Bold)
+                                }
+                                Text(
+                                    text = "${user.fullName} will be activated and can sign in, but will NOT be put into West Point Market Susu or any other group. When they log in, they can enter an invite code or you can assign them to a group later.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            when (selectedOption) {
+                                0 -> {
+                                    val pos = positionText.toIntOrNull()
+                                    onConfirm(selectedGroupId, roleInGroup, pos)
+                                }
+                                1 -> {
+                                    // Approve user first so they are active, then launch group creator
+                                    onConfirm(null, roleInGroup, null)
+                                    onCreateNewGroupForUser(user)
+                                }
+                                2 -> {
+                                    // Approve only, assignGroupId = null
+                                    onConfirm(null, roleInGroup, null)
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                        modifier = Modifier.weight(1.5f),
+                        enabled = when (selectedOption) {
+                            0 -> selectedGroupId > 0
+                            1 -> true
+                            2 -> true
+                            else -> false
+                        }
+                    ) {
+                        Text(
+                            when (selectedOption) {
+                                0 -> "Approve & Enroll"
+                                1 -> "Create New Group ❯"
+                                2 -> "Approve (No Group)"
+                                else -> "Confirm"
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AssignOrganizerDialog(
+    group: SusuGroup,
+    users: List<User>,
+    onDismiss: () -> Unit,
+    onConfirm: (organizerId: Long) -> Unit
+) {
+    val activeUsers = users.filter { it.status == "ACTIVE" }
+    var selectedUserId by remember { mutableLongStateOf(group.organizerId) }
+    var userDropdownExpanded by remember { mutableStateOf(false) }
+    val selectedUser = activeUsers.find { it.id == selectedUserId }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .testTag("assign_organizer_dialog"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SusuGoldContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.AdminPanelSettings, contentDescription = null, tint = SusuGoldDark)
+                    }
+                    Column {
+                        Text("Assign Group Organizer", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(group.name, style = MaterialTheme.typography.bodySmall, color = SusuEmeraldPrimary)
+                    }
+                }
+
+                Text(
+                    text = "Select who will organize, verify payments, and manage ${group.name}:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                ExposedDropdownMenuBox(
+                    expanded = userDropdownExpanded,
+                    onExpandedChange = { userDropdownExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedUser?.let { "${it.fullName} (${it.phone}) [${it.role}]" } ?: "Select Organizer",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Group Organizer *") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = userDropdownExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = userDropdownExpanded,
+                        onDismissRequest = { userDropdownExpanded = false }
+                    ) {
+                        activeUsers.forEach { u ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            Text(u.fullName, fontWeight = FontWeight.Bold)
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                color = if (u.role == "ORGANIZER") SusuGoldContainer else MaterialTheme.colorScheme.surfaceVariant
+                                            ) {
+                                                Text(u.role, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                        Text(u.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                onClick = {
+                                    selectedUserId = u.id
+                                    userDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = { onConfirm(selectedUserId) },
+                        colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                        modifier = Modifier.weight(1.5f),
+                        enabled = selectedUserId > 0
+                    ) {
+                        Text("Save Organizer")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AssignUserToGroupDialog(
+    user: User,
+    groups: List<SusuGroup>,
+    onDismiss: () -> Unit,
+    onConfirm: (groupId: Long, roleInGroup: String, customPosition: Int?) -> Unit
+) {
+    var selectedGroupId by remember { mutableLongStateOf(groups.firstOrNull()?.id ?: 0L) }
+    var roleInGroup by remember { mutableStateOf(if (user.role == "ORGANIZER") "ORGANIZER" else "MEMBER") }
+    var positionText by remember { mutableStateOf("") }
+    var groupDropdownExpanded by remember { mutableStateOf(false) }
+
+    val selectedGroup = groups.find { it.id == selectedGroupId }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .testTag("assign_user_dialog"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SusuEmeraldContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.GroupAdd, contentDescription = null, tint = SusuEmeraldPrimary)
+                    }
+                    Column {
+                        Text("Assign to Susu Group", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(user.fullName, style = MaterialTheme.typography.bodyMedium, color = SusuEmeraldPrimary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                if (groups.isEmpty()) {
+                    Text("No Susu groups available. Please create a group first.", color = MaterialTheme.colorScheme.error)
+                } else {
+                    ExposedDropdownMenuBox(
+                        expanded = groupDropdownExpanded,
+                        onExpandedChange = { groupDropdownExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedGroup?.let { "${it.name} (${it.groupCode})" } ?: "Select Susu Group",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Target Susu Group *") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = groupDropdownExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = groupDropdownExpanded,
+                            onDismissRequest = { groupDropdownExpanded = false }
+                        ) {
+                            groups.forEach { grp ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(grp.name, fontWeight = FontWeight.Bold)
+                                            Text("Code: ${grp.groupCode} • L$ ${grp.contributionAmount.toInt()} / ${grp.frequency.lowercase()}", style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedGroupId = grp.id
+                                        groupDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Text("Role in Group:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = roleInGroup == "MEMBER",
+                            onClick = { roleInGroup = "MEMBER" },
+                            label = { Text("Member") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        FilterChip(
+                            selected = roleInGroup == "ORGANIZER",
+                            onClick = { roleInGroup = "ORGANIZER" },
+                            label = { Text("Organizer") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = positionText,
+                        onValueChange = { positionText = it },
+                        label = { Text("Rotation Position (Optional)") },
+                        placeholder = { Text("Auto-assign next turn slot") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val pos = positionText.toIntOrNull()
+                            onConfirm(selectedGroupId, roleInGroup, pos)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                        modifier = Modifier.weight(1.5f),
+                        enabled = groups.isNotEmpty() && selectedGroupId > 0
+                    ) {
+                        Text("Confirm Assignment")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddMemberToGroupDialog(
+    group: SusuGroup,
+    users: List<User>,
+    onDismiss: () -> Unit,
+    onConfirm: (userId: Long, roleInGroup: String, customPosition: Int?) -> Unit
+) {
+    val activeUsers = users.filter { it.status == "ACTIVE" }
+    var selectedUserId by remember { mutableLongStateOf(activeUsers.firstOrNull()?.id ?: 0L) }
+    var roleInGroup by remember { mutableStateOf("MEMBER") }
+    var positionText by remember { mutableStateOf("") }
+    var userDropdownExpanded by remember { mutableStateOf(false) }
+
+    val selectedUser = activeUsers.find { it.id == selectedUserId }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .testTag("add_member_to_group_dialog"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SusuEmeraldContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.PersonAdd, contentDescription = null, tint = SusuEmeraldPrimary)
+                    }
+                    Column {
+                        Text("Add to ${group.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text("Group Code: ${group.groupCode}", style = MaterialTheme.typography.bodySmall, color = SusuEmeraldPrimary)
+                    }
+                }
+
+                if (activeUsers.isEmpty()) {
+                    Text("No active users found. Please register and approve users first.", color = MaterialTheme.colorScheme.error)
+                } else {
+                    ExposedDropdownMenuBox(
+                        expanded = userDropdownExpanded,
+                        onExpandedChange = { userDropdownExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedUser?.let { "${it.fullName} (${it.phone})" } ?: "Select User",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Select User to Enroll *") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = userDropdownExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = userDropdownExpanded,
+                            onDismissRequest = { userDropdownExpanded = false }
+                        ) {
+                            activeUsers.forEach { u ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(u.fullName, fontWeight = FontWeight.Bold)
+                                            Text("${u.phone} • ${u.role}", style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedUserId = u.id
+                                        roleInGroup = if (u.role == "ORGANIZER") "ORGANIZER" else "MEMBER"
+                                        userDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Text("Role in Group:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = roleInGroup == "MEMBER",
+                            onClick = { roleInGroup = "MEMBER" },
+                            label = { Text("Member") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        FilterChip(
+                            selected = roleInGroup == "ORGANIZER",
+                            onClick = { roleInGroup = "ORGANIZER" },
+                            label = { Text("Organizer") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = positionText,
+                        onValueChange = { positionText = it },
+                        label = { Text("Rotation Position (Optional)") },
+                        placeholder = { Text("Auto-assign next turn slot") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val pos = positionText.toIntOrNull()
+                            onConfirm(selectedUserId, roleInGroup, pos)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SusuEmeraldPrimary),
+                        modifier = Modifier.weight(1.5f),
+                        enabled = activeUsers.isNotEmpty() && selectedUserId > 0
+                    ) {
+                        Text("Add to Group")
                     }
                 }
             }

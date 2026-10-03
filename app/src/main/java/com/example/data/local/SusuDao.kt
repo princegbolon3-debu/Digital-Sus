@@ -68,13 +68,35 @@ interface SusuDao {
     @Query("SELECT * FROM susu_groups WHERE groupCode = :code LIMIT 1")
     suspend fun getGroupByCode(code: String): SusuGroup?
 
+    @Query("""
+        SELECT DISTINCT g.* FROM susu_groups g 
+        INNER JOIN group_members gm ON g.id = gm.groupId 
+        WHERE gm.userId = :userId 
+        ORDER BY g.createdAt DESC
+    """)
+    fun getGroupsForUser(userId: Long): Flow<List<SusuGroup>>
+
+    @Query("""
+        SELECT DISTINCT g.* FROM susu_groups g 
+        LEFT JOIN group_members gm ON g.id = gm.groupId 
+        WHERE g.organizerId = :userId OR gm.userId = :userId 
+        ORDER BY g.createdAt DESC
+    """)
+    fun getGroupsForUserOrOrganizer(userId: Long): Flow<List<SusuGroup>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGroup(group: SusuGroup): Long
 
     @Update
     suspend fun updateGroup(group: SusuGroup)
 
+    @Query("UPDATE susu_groups SET organizerId = :organizerId WHERE id = :groupId")
+    suspend fun updateGroupOrganizer(groupId: Long, organizerId: Long)
+
     // --- Group Members ---
+    @Query("SELECT * FROM group_members")
+    fun getAllGroupMembers(): Flow<List<GroupMember>>
+
     @Query("SELECT * FROM group_members WHERE groupId = :groupId ORDER BY payoutPosition ASC")
     fun getMembersForGroup(groupId: Long): Flow<List<GroupMember>>
 
@@ -86,6 +108,9 @@ interface SusuDao {
 
     @Query("SELECT * FROM group_members WHERE groupId = :groupId AND userId = :userId LIMIT 1")
     suspend fun getMemberByGroupAndUser(groupId: Long, userId: Long): GroupMember?
+
+    @Query("DELETE FROM group_members WHERE groupId = :groupId AND userId = :userId")
+    suspend fun removeMemberFromGroup(groupId: Long, userId: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMember(member: GroupMember): Long

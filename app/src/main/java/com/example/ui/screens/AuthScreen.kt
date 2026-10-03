@@ -162,8 +162,8 @@ fun AuthScreen(
                     onClick = {
                         selectedPortal = 1
                         isRegisterMode = false
-                        identifier = "princegbolon3@gmail.com"
-                        password = "admin"
+                        identifier = ""
+                        password = ""
                     },
                     text = { Text("Admin Portal", fontWeight = FontWeight.Bold) },
                     icon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = null) },

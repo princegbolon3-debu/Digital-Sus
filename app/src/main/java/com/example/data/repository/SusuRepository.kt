@@ -14,9 +14,12 @@ import com.example.data.model.Receipt
 import com.example.data.model.SusuGroup
 import com.example.data.model.User
 import com.example.data.remote.FirebaseSyncManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 sealed class OperationResult<out T> {
@@ -26,12 +29,172 @@ sealed class OperationResult<out T> {
 
 class SusuRepository(private val dao: SusuDao) {
 
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            ensureInitialData()
+        }
+    }
+
+    suspend fun ensureInitialData() {
+        try {
+            // 1. Ensure System Administrator (Prince Gbolon) exists
+            var admin = dao.getUserByCredentials("princegbolon3@gmail.com")
+            if (admin == null) {
+                val adminUser = User(
+                    fullName = "Prince Gbolon",
+                    phone = "+231 77 000 0001",
+                    email = "princegbolon3@gmail.com",
+                    role = "ADMIN",
+                    password = "2004prada22",
+                    status = "ACTIVE"
+                )
+                val adminId = dao.insertUser(adminUser)
+                admin = adminUser.copy(id = adminId)
+
+                dao.insertAuditLog(
+                    AuditLog(
+                        userId = adminId,
+                        userName = "Prince Gbolon",
+                        action = "SYSTEM_INITIALIZED",
+                        entityType = "SYSTEM",
+                        entityId = adminId,
+                        description = "Digital Susu platform provisioned for Prince Gbolon."
+                    )
+                )
+            }
+
+            // 2. Ensure Sample Member 1 (Kollie Flomo)
+            var member1 = dao.getUserByCredentials("+231 77 111 2222")
+            if (member1 == null) {
+                val u1 = User(
+                    fullName = "Kollie Flomo",
+                    phone = "+231 77 111 2222",
+                    email = "kollie@susu.lr",
+                    role = "MEMBER",
+                    password = "password123",
+                    status = "ACTIVE"
+                )
+                val id = dao.insertUser(u1)
+                member1 = u1.copy(id = id)
+            }
+
+            // 3. Ensure Sample Member 2 (Hawa Sirleaf)
+            var member2 = dao.getUserByCredentials("+231 88 333 4444")
+            if (member2 == null) {
+                val u2 = User(
+                    fullName = "Hawa Sirleaf",
+                    phone = "+231 88 333 4444",
+                    email = "hawa@susu.lr",
+                    role = "MEMBER",
+                    password = "password123",
+                    status = "ACTIVE"
+                )
+                val id = dao.insertUser(u2)
+                member2 = u2.copy(id = id)
+            }
+
+            // 4. Ensure Default Community Circle
+            val existingGroup = dao.getGroupByCode("WP-SUSU-2026")
+            if (existingGroup == null) {
+                val now = System.currentTimeMillis()
+                val dueDate = now + (7L * 24L * 60L * 60L * 1000L)
+                val newGroup = SusuGroup(
+                    name = "West Point Market Susu",
+                    groupCode = "WP-SUSU-2026",
+                    description = "Monrovia community rotating savings club",
+                    organizerId = admin.id,
+                    contributionAmount = 1000.0,
+                    frequency = "WEEKLY",
+                    startDate = now,
+                    numberOfCycles = 10,
+                    currentCycle = 1,
+                    status = "ACTIVE"
+                )
+                val groupId = dao.insertGroup(newGroup)
+
+                // Enroll members in rotation positions
+                dao.insertMember(GroupMember(groupId = groupId, userId = admin.id, payoutPosition = 1))
+                dao.insertMember(GroupMember(groupId = groupId, userId = member1.id, payoutPosition = 2))
+                dao.insertMember(GroupMember(groupId = groupId, userId = member2.id, payoutPosition = 3))
+
+                // Create Active Cycle 1
+                val cycleId = dao.insertCycle(
+                    ContributionCycle(
+                        groupId = groupId,
+                        cycleNumber = 1,
+                        startDate = now,
+                        dueDate = dueDate,
+                        status = "ACTIVE",
+                        expectedAmount = 3000.0
+                    )
+                )
+
+                // Contributions
+                dao.insertContribution(
+                    Contribution(
+                        cycleId = cycleId,
+                        groupId = groupId,
+                        memberUserId = admin.id,
+                        expectedAmount = 1000.0,
+                        paidAmount = 1000.0,
+                        status = "VERIFIED",
+                        dueDate = dueDate
+                    )
+                )
+                dao.insertContribution(
+                    Contribution(
+                        cycleId = cycleId,
+                        groupId = groupId,
+                        memberUserId = member1.id,
+                        expectedAmount = 1000.0,
+                        paidAmount = 1000.0,
+                        status = "SUBMITTED",
+                        dueDate = dueDate
+                    )
+                )
+                dao.insertContribution(
+                    Contribution(
+                        cycleId = cycleId,
+                        groupId = groupId,
+                        memberUserId = member2.id,
+                        expectedAmount = 1000.0,
+                        paidAmount = 0.0,
+                        status = "UNPAID",
+                        dueDate = dueDate
+                    )
+                )
+
+                // Sample Receipt for turn 1
+                dao.insertReceipt(
+                    Receipt(
+                        receiptNumber = "REC-WP-001",
+                        paymentId = 1,
+                        groupId = groupId,
+                        groupName = "West Point Market Susu",
+                        memberUserId = admin.id,
+                        memberName = "Prince Gbolon",
+                        amount = 1000.0,
+                        cycleNumber = 1,
+                        paymentMethod = "Lonestar MTN Mobile Money",
+                        transactionReference = "MTN-8849102",
+                        status = "VERIFIED",
+                        issuedAt = now
+                    )
+                )
+            }
+        } catch (_: Exception) {}
+    }
+
     val allUsers: Flow<List<User>> = dao.getAllUsers()
     val pendingUsers: Flow<List<User>> = dao.getPendingApprovalUsers()
     val allGroups: Flow<List<SusuGroup>> = dao.getAllGroups()
+    val allGroupMembers: Flow<List<GroupMember>> = dao.getAllGroupMembers()
     val allPayments: Flow<List<Payment>> = dao.getAllPayments()
     val allReceipts: Flow<List<Receipt>> = dao.getAllReceipts()
     val allAuditLogs: Flow<List<AuditLog>> = dao.getAllAuditLogs()
+
+    fun getGroupsForUser(userId: Long): Flow<List<SusuGroup>> = dao.getGroupsForUser(userId)
+    fun getGroupsForUserOrOrganizer(userId: Long): Flow<List<SusuGroup>> = dao.getGroupsForUserOrOrganizer(userId)
 
     fun getUser(userId: Long): Flow<User?> = dao.getUserById(userId)
     fun getGroup(groupId: Long): Flow<SusuGroup?> = dao.getGroupById(groupId)
@@ -474,7 +637,8 @@ class SusuRepository(private val dao: SusuDao) {
         organizerId: Long,
         contributionAmount: Double,
         frequency: String,
-        numberOfCycles: Int
+        numberOfCycles: Int,
+        initialMemberIds: List<Long> = emptyList()
     ): OperationResult<Long> {
         val cleanCode = code.trim().uppercase()
         val existing = dao.getGroupByCode(cleanCode)
@@ -544,6 +708,39 @@ class SusuRepository(private val dao: SusuDao) {
             )
         )
 
+        // Add initial members if selected
+        initialMemberIds.distinct().filter { it != organizerId }.forEachIndexed { idx, memberId ->
+            val pos = idx + 2
+            dao.insertMember(
+                GroupMember(
+                    groupId = groupId,
+                    userId = memberId,
+                    payoutPosition = pos,
+                    status = "ACTIVE",
+                    joinedAt = now
+                )
+            )
+            dao.insertContribution(
+                Contribution(
+                    cycleId = cycleId,
+                    groupId = groupId,
+                    memberUserId = memberId,
+                    expectedAmount = contributionAmount,
+                    paidAmount = 0.0,
+                    status = "UNPAID",
+                    dueDate = now + cycleDurationMs
+                )
+            )
+            dao.insertNotification(
+                NotificationItem(
+                    userId = memberId,
+                    title = "Enrolled in ${name.trim()}! 🎉",
+                    message = "You have been added to ${name.trim()} as Turn #$pos.",
+                    type = "CONFIRMATION"
+                )
+            )
+        }
+
         // Pending Payout for Cycle 1
         dao.insertPayout(
             Payout(
@@ -568,6 +765,180 @@ class SusuRepository(private val dao: SusuDao) {
         )
 
         return OperationResult.Success(groupId, "Susu group '$name' created successfully!")
+    }
+
+    // Add user directly to a Susu group (Admin or Organizer action)
+    suspend fun addUserToGroup(
+        groupId: Long,
+        userId: Long,
+        roleInGroup: String = "MEMBER",
+        customPosition: Int? = null,
+        approverId: Long
+    ): OperationResult<Boolean> {
+        val group = dao.getGroupByIdDirect(groupId) ?: return OperationResult.Error("Group not found.")
+        val user = dao.getUserByIdDirect(userId) ?: return OperationResult.Error("User not found.")
+        val approver = dao.getUserByIdDirect(approverId)
+        val existing = dao.getMemberByGroupAndUser(groupId, userId)
+        if (existing != null) {
+            if (roleInGroup.uppercase() == "ORGANIZER") {
+                dao.updateGroupOrganizer(groupId, userId)
+                dao.insertAuditLog(
+                    AuditLog(
+                        userId = approverId,
+                        userName = approver?.fullName ?: "Administrator",
+                        action = "GROUP_ORGANIZER_CHANGED",
+                        entityType = "GROUP",
+                        entityId = groupId,
+                        description = "Designated existing member ${user.fullName} as organizer of ${group.name}."
+                    )
+                )
+                dao.insertNotification(
+                    NotificationItem(
+                        userId = userId,
+                        title = "Appointed as Group Organizer! 👑",
+                        message = "You have been designated as the Organizer for ${group.name}.",
+                        type = "ALERT"
+                    )
+                )
+                return OperationResult.Success(true, "${user.fullName} is now the organizer of ${group.name}.")
+            }
+            return OperationResult.Error("${user.fullName} is already enrolled in ${group.name}.")
+        }
+
+        val currentMembers = dao.getMembersForGroupDirect(groupId)
+        val position = customPosition ?: (currentMembers.size + 1)
+        val now = System.currentTimeMillis()
+
+        dao.insertMember(
+            GroupMember(
+                groupId = groupId,
+                userId = userId,
+                payoutPosition = position,
+                status = "ACTIVE",
+                joinedAt = now
+            )
+        )
+
+        if (roleInGroup.uppercase() == "ORGANIZER") {
+            dao.updateGroupOrganizer(groupId, userId)
+        }
+
+        // Add contribution slot for current active cycle
+        val cycle = dao.getCycleByNumber(groupId, group.currentCycle)
+        if (cycle != null) {
+            val existingContrib = dao.getContributionByCycleAndMember(cycle.id, userId)
+            if (existingContrib == null) {
+                dao.insertContribution(
+                    Contribution(
+                        cycleId = cycle.id,
+                        groupId = groupId,
+                        memberUserId = userId,
+                        expectedAmount = group.contributionAmount,
+                        paidAmount = 0.0,
+                        status = "UNPAID",
+                        dueDate = cycle.dueDate
+                    )
+                )
+            }
+        }
+
+        dao.insertAuditLog(
+            AuditLog(
+                userId = approverId,
+                userName = approver?.fullName ?: "Administrator",
+                action = "MEMBER_ASSIGNED_TO_GROUP",
+                entityType = "GROUP",
+                entityId = groupId,
+                description = "Assigned ${user.fullName} to ${group.name} as $roleInGroup (Turn #$position)."
+            )
+        )
+
+        dao.insertNotification(
+            NotificationItem(
+                userId = userId,
+                title = "Added to ${group.name}! 🎉",
+                message = "You have been assigned to ${group.name} as $roleInGroup (Payout Turn #$position).",
+                type = "CONFIRMATION"
+            )
+        )
+
+        return OperationResult.Success(true, "Successfully assigned ${user.fullName} to ${group.name}.")
+    }
+
+    // Assign / Change Organizer for an existing Susu group
+    suspend fun assignGroupOrganizer(
+        groupId: Long,
+        organizerId: Long,
+        approverId: Long
+    ): OperationResult<Boolean> {
+        val group = dao.getGroupByIdDirect(groupId) ?: return OperationResult.Error("Group not found.")
+        val organizer = dao.getUserByIdDirect(organizerId) ?: return OperationResult.Error("Organizer user not found.")
+        val approver = dao.getUserByIdDirect(approverId)
+
+        dao.updateGroupOrganizer(groupId, organizerId)
+
+        // Ensure organizer is enrolled in group members roster
+        val existingMember = dao.getMemberByGroupAndUser(groupId, organizerId)
+        if (existingMember == null) {
+            val members = dao.getMembersForGroupDirect(groupId)
+            dao.insertMember(
+                GroupMember(
+                    groupId = groupId,
+                    userId = organizerId,
+                    payoutPosition = members.size + 1,
+                    status = "ACTIVE",
+                    joinedAt = System.currentTimeMillis()
+                )
+            )
+        }
+
+        dao.insertAuditLog(
+            AuditLog(
+                userId = approverId,
+                userName = approver?.fullName ?: "Administrator",
+                action = "GROUP_ORGANIZER_CHANGED",
+                entityType = "GROUP",
+                entityId = groupId,
+                description = "Assigned ${organizer.fullName} (${organizer.phone}) as organizer for ${group.name}."
+            )
+        )
+
+        dao.insertNotification(
+            NotificationItem(
+                userId = organizerId,
+                title = "Assigned as Group Organizer! 👑",
+                message = "You have been designated as the Organizer for ${group.name}.",
+                type = "ALERT"
+            )
+        )
+
+        return OperationResult.Success(true, "${organizer.fullName} is now the organizer of ${group.name}.")
+    }
+
+    // Remove member from group
+    suspend fun removeMemberFromGroup(
+        groupId: Long,
+        userId: Long,
+        actorId: Long
+    ): OperationResult<Boolean> {
+        val group = dao.getGroupByIdDirect(groupId) ?: return OperationResult.Error("Group not found.")
+        val user = dao.getUserByIdDirect(userId) ?: return OperationResult.Error("User not found.")
+        val actor = dao.getUserByIdDirect(actorId)
+
+        dao.removeMemberFromGroup(groupId, userId)
+
+        dao.insertAuditLog(
+            AuditLog(
+                userId = actorId,
+                userName = actor?.fullName ?: "Administrator",
+                action = "MEMBER_REMOVED",
+                entityType = "GROUP",
+                entityId = groupId,
+                description = "Removed ${user.fullName} from ${group.name}."
+            )
+        )
+
+        return OperationResult.Success(true, "${user.fullName} removed from ${group.name}.")
     }
 
     // FR-008, FR-010: Create Contribution Cycle
@@ -886,8 +1257,14 @@ class SusuRepository(private val dao: SusuDao) {
         }
     }
 
-    // Approve Pending Member Account (Organizer or Admin action)
-    suspend fun approveUser(userId: Long, approverId: Long): OperationResult<Boolean> {
+    // Approve Pending Member Account (Organizer or Admin action), with optional group assignment
+    suspend fun approveUser(
+        userId: Long,
+        approverId: Long,
+        assignToGroupId: Long? = null,
+        roleInGroup: String = "MEMBER",
+        customPosition: Int? = null
+    ): OperationResult<Boolean> {
         val user = dao.getUserByIdDirect(userId) ?: return OperationResult.Error("User not found.")
         val approver = dao.getUserByIdDirect(approverId)
 
@@ -912,16 +1289,25 @@ class SusuRepository(private val dao: SusuDao) {
             )
         )
 
+        var groupMsg = ""
+        if (assignToGroupId != null && assignToGroupId > 0) {
+            val assignResult = addUserToGroup(assignToGroupId, userId, roleInGroup, customPosition, approverId)
+            if (assignResult is OperationResult.Success) {
+                val grp = dao.getGroupByIdDirect(assignToGroupId)
+                groupMsg = " Assigned to ${grp?.name ?: "Susu group"}."
+            }
+        }
+
         dao.insertNotification(
             NotificationItem(
                 userId = userId,
                 title = "Account Approved! 🎉",
-                message = "Your ${user.role.lowercase()} registration has been approved by the Administrator. You can now log in and join Susu groups.",
+                message = "Your ${user.role.lowercase()} account has been approved by the Administrator.$groupMsg You can now log in.",
                 type = "CONFIRMATION"
             )
         )
 
-        return OperationResult.Success(true, "Approved ${user.fullName} successfully.")
+        return OperationResult.Success(true, "Approved ${user.fullName} successfully.$groupMsg")
     }
 
     // Reject Member Account (Organizer or Admin action)
