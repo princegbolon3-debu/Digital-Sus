@@ -222,10 +222,11 @@ fun AdminDashboardScreen(
 
         // Section Tabs
         item {
-            TabRow(
+            ScrollableTabRow(
                 selectedTabIndex = adminViewTab,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = SusuEmeraldPrimary,
+                edgePadding = 4.dp,
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
             ) {
                 Tab(
@@ -257,6 +258,11 @@ fun AdminDashboardScreen(
                     selected = adminViewTab == 3,
                     onClick = { adminViewTab = 3 },
                     text = { Text("MoMo APIs") }
+                )
+                Tab(
+                    selected = adminViewTab == 4,
+                    onClick = { adminViewTab = 4 },
+                    text = { Text("Docs (SRS/PRD/SDD)") }
                 )
             }
         }
@@ -1053,6 +1059,11 @@ fun AdminDashboardScreen(
                             }
                         }
                     }
+                }
+            }
+            4 -> {
+                item {
+                    SystemDocumentationSection()
                 }
             }
         }

@@ -1,0 +1,26 @@
+{
+  "name": "Digital Susu - Liberia ROSCA",
+  "short_name": "Digital Susu",
+  "description": "Liberia's premier Digital Susu, Community ROSCA Savings, Mobile Money & Micro-Loans platform.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1b2a",
+  "theme_color": "#1b4332",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

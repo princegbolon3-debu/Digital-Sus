@@ -45,6 +45,7 @@ import com.example.ui.theme.*
 fun AuthScreen(
     onLogin: (identifier: String, password: String) -> Unit,
     onRegister: (fullName: String, phone: String, email: String, role: String, password: String) -> Unit,
+    onDownloadApp: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedPortal by remember { mutableIntStateOf(0) } // 0: Member & Organizer, 1: Administrator
@@ -134,6 +135,60 @@ fun AuthScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Prominent Download APK Banner for Phone Installation
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = SusuEmeraldContainer.copy(alpha = 0.7f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, SusuEmeraldPrimary.copy(alpha = 0.35f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onDownloadApp() }
+                    .testTag("auth_download_app_banner")
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(SusuEmeraldPrimary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.InstallMobile,
+                            contentDescription = "Install App",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "📲 Download App to Phone",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = SusuEmeraldPrimary
+                        )
+                        Text(
+                            text = "Save DigitalSusu.apk directly to Downloads or share via WhatsApp/Drive",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    FilledTonalButton(
+                        onClick = onDownloadApp,
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.testTag("auth_get_apk_button")
+                    ) {
+                        Text("Get APK", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+            }
             // Portal Selector Tabs: Member & Organizer vs Admin
             TabRow(
                 selectedTabIndex = selectedPortal,

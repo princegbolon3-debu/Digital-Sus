@@ -2,147 +2,2061 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download Digital Susu App 🇱🇷</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digital Susu — Liberia ROSCA & Community Savings 🇱🇷</title>
+  <meta name="description" content="Digital Susu: Liberia's premier Community ROSCA Savings, Mobile Money & Micro-Loans platform. Dual portals for Members and Administrators.">
+  
+  <!-- PWA & Mobile Web Capabilities -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#064E3B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Digital Susu">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+
+  <!-- Markdown Renderer for SRS/PRD/SDD/SSD -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #064E3B;
+      --primary-light: #10B981;
+      --accent: #F59E0B;
+      --accent-gold: #FBBF24;
+      --gold-bg: rgba(245, 158, 11, 0.15);
+      --gold-border: rgba(245, 158, 11, 0.4);
+      --bg: #061410;
+      --surface: #0E221B;
+      --surface-card: #153329;
+      --surface-elevated: #1D4235;
+      --border: #225343;
+      --border-light: rgba(52, 211, 153, 0.25);
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --success: #34D399;
+      --danger: #EF4444;
+      --momo-yellow: #FFCC00;
+      --orange-money: #FF7900;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+      --shadow-glow: 0 0 25px rgba(16, 185, 129, 0.35);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
+
     body {
-      background-color: #064E3B;
-      color: #FFFFFF;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: radial-gradient(circle at 50% 0%, #16362B 0%, #061410 65%, #030A08 100%);
+      color: var(--text-main);
       min-height: 100vh;
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 70px;
+      overflow-x: hidden;
     }
-    .card {
-      background: #FFFFFF;
-      color: #1F2937;
-      max-width: 440px;
+
+    /* Fixed Top App Bar */
+    .top-navbar {
       width: 100%;
-      border-radius: 24px;
-      padding: 32px 24px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      background: rgba(14, 34, 27, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .badge {
-      display: inline-block;
-      background: #D1FAE5;
-      color: #065F46;
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10B981, #064E3B);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--primary-light);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-install-btn {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #032015;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 7px 14px;
+      border-radius: 9999px;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      transition: transform 0.15s ease;
+    }
+
+    .nav-install-btn:active {
+      transform: scale(0.96);
+    }
+
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 600px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* AUTHENTICATION SCREEN STYLES (MATCHES KOTLIN AuthScreen.kt) */
+    .auth-hero {
+      position: relative;
+      height: 200px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(6, 78, 59, 0.2) 0%, rgba(6, 20, 16, 0.95) 100%),
+                  radial-gradient(circle at 50% 20%, #10B981 0%, #064E3B 100%);
+      border: 1px solid var(--border);
+    }
+
+    .auth-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-gold);
+      color: #1A1303;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      width: fit-content;
+      letter-spacing: 0.5px;
+    }
+
+    .auth-hero h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+
+    .auth-hero p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.4;
+    }
+
+    /* App Download Banner in Auth Screen */
+    .auth-install-banner {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .auth-install-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .auth-install-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .auth-install-text h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .auth-install-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .auth-get-btn {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--primary-light);
+      color: #34D399;
       font-size: 12px;
       font-weight: 700;
       padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
     }
-    .icon-container {
-      width: 80px;
-      height: 80px;
-      background: #064E3B;
-      border-radius: 20px;
-      margin: 0 auto 16px auto;
+
+    /* DUAL PORTAL SELECTOR TABS */
+    .portal-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      gap: 6px;
+    }
+
+    .portal-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 10px;
+      border-radius: 10px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 38px;
-      box-shadow: 0 8px 16px rgba(6,78,59,0.3);
+      gap: 8px;
+      transition: all 0.2s ease;
     }
-    h1 {
-      font-size: 24px;
-      font-weight: 800;
-      color: #064E3B;
-      margin-bottom: 8px;
+
+    .portal-tab-btn.active {
+      background: var(--surface-elevated);
+      color: #34D399;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
     }
-    p.subtitle {
-      font-size: 14px;
-      color: #4B5563;
-      margin-bottom: 24px;
-      line-height: 1.5;
+
+    .portal-tab-btn.active.admin-tab {
+      background: #1F2937;
+      color: var(--accent-gold);
+      border-color: rgba(245, 158, 11, 0.4);
     }
-    .btn-download {
+
+    /* SUB-MODE SELECTOR: SIGN IN VS CREATE ACCOUNT */
+    .mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--surface);
+      color: var(--primary-light);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* AUTH CARD & FORMS */
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-md);
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: #059669;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .auth-card-header h3 {
+      font-size: 18px;
+      font-weight: 700;
       color: #FFFFFF;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 16px;
-      padding: 16px 24px;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(5,150,105,0.4);
-      transition: background 0.2s, transform 0.1s;
+      margin-bottom: 4px;
     }
-    .btn-download:hover, .btn-download:active {
-      background: #047857;
-      transform: translateY(-1px);
-    }
-    .file-info {
+
+    .auth-card-header p {
       font-size: 12px;
-      color: #6B7280;
-      margin-top: 10px;
-      margin-bottom: 24px;
+      color: var(--text-muted);
     }
-    .steps {
-      background: #F9FAFB;
-      border-radius: 16px;
-      padding: 18px 16px;
-      text-align: left;
-      font-size: 13px;
-      color: #374151;
-      border: 1px solid #E5E7EB;
+
+    .admin-notice-banner {
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #FDE68A;
+      line-height: 1.4;
     }
-    .steps h3 {
+
+    .admin-notice-icon {
+      font-size: 22px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #D1D5DB;
+    }
+
+    .form-input-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 16px;
+      color: var(--text-dim);
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #FFFFFF;
+      font-size: 14px;
+      padding: 12px 14px 12px 38px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* Role selection chips */
+    .role-chips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .role-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
       font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .role-chip.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--primary-light);
+      color: #34D399;
+    }
+
+    .submit-auth-btn {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #032015;
+      border: none;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 6px;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      transition: transform 0.15s ease;
+    }
+
+    .submit-auth-btn.admin-submit {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
       color: #111827;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+    }
+
+    .submit-auth-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Quick 1-Click Demo Buttons */
+    .quick-logins-box {
+      margin-top: 10px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quick-logins-title {
+      font-size: 11px;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-weight: 600;
     }
-    .steps ol {
-      padding-left: 20px;
-      line-height: 1.6;
+
+    .quick-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
     }
-    .steps li {
-      margin-bottom: 6px;
+
+    .quick-btn {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: #E5E7EB;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s ease;
+    }
+
+    .quick-btn:hover {
+      background: var(--surface-elevated);
+      border-color: var(--primary-light);
+    }
+
+    .quick-btn.admin-quick {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.08);
+      color: #FBBF24;
+    }
+
+    /* ========================================================================= */
+    /* LOGGED-IN DASHBOARD VIEW STYLES (ADMIN, MEMBER, ORGANIZER) */
+    /* ========================================================================= */
+    .dashboard-view {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Active User Banner */
+    .user-session-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-session-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981, #064E3B);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .user-avatar.admin-avatar {
+      background: linear-gradient(135deg, #F59E0B, #B45309);
+    }
+
+    .user-meta h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-meta p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .role-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+
+    .role-badge.badge-admin {
+      background: var(--accent-gold);
+      color: #1A1303;
+    }
+
+    .role-badge.badge-member {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34D399;
+      border: 1px solid rgba(52, 211, 153, 0.4);
+    }
+
+    .role-badge.badge-organizer {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60A5FA;
+      border: 1px solid rgba(96, 165, 250, 0.4);
+    }
+
+    /* Dashboard Navigation Tabs */
+    .dash-tabs {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    .dash-tab-btn {
+      flex: 1;
+      min-width: 90px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .dash-tab-btn.active {
+      background: var(--surface-elevated);
+      color: #34D399;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+    }
+
+    /* Cards & Stats */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wallet-hero {
+      background: linear-gradient(135deg, #13392D 0%, #0D281F 100%);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+    }
+
+    .wallet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .wallet-balance {
+      font-size: 32px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .action-button {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    .action-button:active {
+      transform: scale(0.96);
+    }
+
+    .action-icon {
+      font-size: 20px;
+    }
+
+    .action-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* Admin specific list items */
+    .admin-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat-card-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-card-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+
+    .approval-item {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .approval-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-approve {
+      background: #059669;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-reject {
+      background: rgba(239, 68, 68, 0.2);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .audit-log-item {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 12px;
+    }
+
+    .audit-log-item:last-child {
+      border-bottom: none;
+    }
+
+    .audit-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      font-weight: 700;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+
+    /* Modal / Toast Notifications */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #064E3B;
+      color: #FFFFFF;
+      border: 1.5px solid #10B981;
+      padding: 12px 24px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Modal Overlay & Troubleshooting Guide */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 16px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-box {
+      background: #0D1B2A;
+      border: 1.5px solid #10B981;
+      border-radius: 20px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+      animation: guideModalIn 0.25s ease-out;
+    }
+    @keyframes guideModalIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .guide-step-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .guide-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #10B981;
+      color: #064E3B;
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="badge">🇱🇷 Android App Ready</div>
-    <div class="icon-container">💰</div>
-    <h1>Digital Susu</h1>
-    <p class="subtitle">Complete Savings & Rotating Credit Management System for Liberia.</p>
-    
-    <a href="digital-susu.apk" class="btn-download" download="digital-susu.apk">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
-      Download APK (Install on Phone)
-    </a>
-    <div class="file-info">Version 1.0 • ~23 MB • Compatible with Android 7.0+</div>
 
-    <div class="steps">
-      <h3>Quick Installation Steps</h3>
-      <ol>
-        <li>Tap the <strong>Download APK</strong> button above on your Android phone.</li>
-        <li>When downloaded, open the file from your notification bar or <strong>Downloads</strong> folder.</li>
-        <li>If prompted with <em>"Install unknown apps"</em>, tap <strong>Settings</strong> and turn on <strong>Allow from this source</strong>.</li>
-        <li>Tap <strong>Install</strong>, then tap <strong>Open</strong> to start managing your Susu!</li>
-      </ol>
+  <!-- Top App Bar -->
+  <header class="top-navbar">
+    <div class="brand-group" onclick="goHome()">
+      <div class="brand-icon">🇱🇷</div>
+      <div class="brand-text">
+        <h1>Digital Susu</h1>
+        <p>Community ROSCA & MoMo</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="nav-install-btn" id="headerInstallBtn" onclick="triggerPwaInstall()">
+        <span>📲</span> Install App
+      </button>
+      <button class="logout-btn" id="headerLogoutBtn" style="display:none;" onclick="logout()">
+        <span>🚪</span> Log Out
+      </button>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- ===================================================================== -->
+    <!-- 1. AUTHENTICATION GATEWAY (LOGIN / REGISTER) — DEFAULT VIEW           -->
+    <!-- ===================================================================== -->
+    <div id="authScreen" style="display:flex; flex-direction:column; gap:16px;">
+      
+      <!-- Hero Header matching Kotlin AuthScreen.kt -->
+      <div class="auth-hero">
+        <div class="auth-hero-badge">🇱🇷 DIGITAL SUSU SYSTEM</div>
+        <h2>Welcome to Digital Susu</h2>
+        <p>Organized savings, transparent cycles & verified payouts for Liberia communities.</p>
+      </div>
+
+      <!-- Install & Download App Banner in Auth Screen -->
+      <div class="auth-install-banner" style="flex-direction:column; align-items:stretch; gap:10px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <div class="auth-install-info">
+            <div class="auth-install-icon">📲</div>
+            <div class="auth-install-text">
+              <h4>Install Digital Susu App</h4>
+              <p>Download APK directly or install instantly through Chrome</p>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <a href="/download" download="DigitalSusu.apk" class="submit-auth-btn" style="text-decoration:none; margin:0; padding:10px 8px; font-size:13px; text-align:center;">
+            <span>⬇️</span> Download APK
+          </a>
+          <button type="button" class="auth-get-btn" style="padding:10px 8px; font-size:13px;" onclick="triggerPwaInstall()">
+            <span>✨</span> Install via Chrome
+          </button>
+        </div>
+        <button type="button" onclick="openInstallGuide()" style="background:rgba(16, 185, 129, 0.12); border:1px dashed #10B981; color:#34D399; border-radius:10px; padding:8px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <span>🛠️</span> App Won't Install? Click Here for 30-Second Fix
+        </button>
+      </div>
+
+      <!-- Dual Portal Tabs: Member & Organizer vs Admin -->
+      <div class="portal-tabs">
+        <button class="portal-tab-btn active" id="tabMemberPortal" onclick="switchPortal(0)">
+          <span>👥</span> Member & Organizer
+        </button>
+        <button class="portal-tab-btn admin-tab" id="tabAdminPortal" onclick="switchPortal(1)">
+          <span>🛡️</span> Admin Portal
+        </button>
+      </div>
+
+      <!-- Sub Mode for Member Portal: Sign In vs Create Account -->
+      <div id="memberModeSelector" class="mode-toggle">
+        <button class="mode-btn active" id="btnModeSignIn" onclick="switchAuthMode(false)">Sign In</button>
+        <button class="mode-btn" id="btnModeRegister" onclick="switchAuthMode(true)">Create Account</button>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card">
+
+        <!-- MEMBER SIGN IN FORM -->
+        <div id="formMemberSignIn">
+          <div class="auth-card-header">
+            <h3>Sign In to Your Account</h3>
+            <p>Enter your registered Liberia phone number or email address.</p>
+          </div>
+
+          <form onsubmit="handleLogin(event)" style="display:flex; flex-direction:column; gap:14px; margin-top:14px;">
+            <div class="form-group">
+              <label class="form-label">Phone or Email *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">👤</span>
+                <input type="text" class="form-input" id="memberLoginId" placeholder="+231 77 012 3456 or name@susu.lr" value="+231 77 123 4567" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Password *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">🔒</span>
+                <input type="password" class="form-input" id="memberLoginPass" placeholder="••••••••" value="member123" required>
+                <button type="button" class="password-toggle-btn" onclick="togglePassVisibility('memberLoginPass')">👁️</button>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-auth-btn">
+              <span>➔</span> Sign In
+            </button>
+          </form>
+
+          <!-- Quick Test Accounts for Member -->
+          <div class="quick-logins-box">
+            <span class="quick-logins-title">Quick 1-Click Member / Organizer Demo</span>
+            <div class="quick-btn-grid">
+              <button class="quick-btn" onclick="fillAndLogin('member')">
+                <span>👤</span>
+                <strong>Abraham K.</strong>
+                <span>Member</span>
+              </button>
+              <button class="quick-btn" onclick="fillAndLogin('organizer')">
+                <span>💼</span>
+                <strong>Sarah Doe</strong>
+                <span>Organizer</span>
+              </button>
+              <button class="quick-btn" onclick="fillAndLogin('mary')">
+                <span>👩🏾</span>
+                <strong>Mary V.</strong>
+                <span>Member</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEMBER CREATE ACCOUNT FORM -->
+        <div id="formMemberRegister" style="display:none;">
+          <div class="auth-card-header">
+            <h3>Create Susu Account</h3>
+            <p>Register as a member or savings group organizer.</p>
+          </div>
+
+          <form onsubmit="handleRegister(event)" style="display:flex; flex-direction:column; gap:14px; margin-top:14px;">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">👤</span>
+                <input type="text" class="form-input" id="regFullName" placeholder="e.g. Samuel K. Johnson" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Phone Number (Liberia) *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">📞</span>
+                <input type="tel" class="form-input" id="regPhone" placeholder="+231 77 XXX XXXX" value="+231 " required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">✉️</span>
+                <input type="email" class="form-input" id="regEmail" placeholder="samuel@example.lr">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Password *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">🔒</span>
+                <input type="password" class="form-input" id="regPass" placeholder="Create strong password" required>
+                <button type="button" class="password-toggle-btn" onclick="togglePassVisibility('regPass')">👁️</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Register as:</label>
+              <div class="role-chips">
+                <div class="role-chip active" id="chipMember" onclick="selectRegRole('MEMBER')">
+                  <span>✓</span> Group Member
+                </div>
+                <div class="role-chip" id="chipOrganizer" onclick="selectRegRole('ORGANIZER')">
+                  <span>💼</span> Group Organizer
+                </div>
+              </div>
+            </div>
+
+            <!-- Approval Requirement Notice (matches Kotlin AuthScreen) -->
+            <div class="admin-notice-banner" style="background:rgba(245, 158, 11, 0.12); border-color:rgba(245, 158, 11, 0.35);">
+              <span class="admin-notice-icon">⏳</span>
+              <div>
+                <strong>Administrator Approval Required:</strong> When you register as a <span id="lblNoticeRole">MEMBER</span>, the System Administrator (Prince Gbolon) must review and accept your account before you can log in.
+              </div>
+            </div>
+
+            <button type="submit" class="submit-auth-btn">
+              <span>📝</span> Submit Account for Approval
+            </button>
+          </form>
+        </div>
+
+        <!-- ADMIN PORTAL FORM -->
+        <div id="formAdminPortal" style="display:none;">
+          <div class="admin-notice-banner">
+            <span class="admin-notice-icon">🛡️</span>
+            <div>
+              <strong>Administrator Access:</strong> Full oversight of system groups, users, pending approvals, and audit trail.
+            </div>
+          </div>
+
+          <div class="auth-card-header" style="margin-top:14px;">
+            <h3>Admin Sign In</h3>
+            <p>Enter the credentials for Prince Gbolon (System Administrator).</p>
+          </div>
+
+          <form onsubmit="handleAdminLogin(event)" style="display:flex; flex-direction:column; gap:14px; margin-top:14px;">
+            <div class="form-group">
+              <label class="form-label">Admin Email or Phone *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">👑</span>
+                <input type="text" class="form-input" id="adminLoginId" value="princegbolon3@gmail.com" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Password *</label>
+              <div class="form-input-box">
+                <span class="form-input-icon">🔒</span>
+                <input type="password" class="form-input" id="adminLoginPass" value="2004prada22" required>
+                <button type="button" class="password-toggle-btn" onclick="togglePassVisibility('adminLoginPass')">👁️</button>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-auth-btn admin-submit">
+              <span>🛡️</span> Access Admin Portal
+            </button>
+          </form>
+
+          <!-- 1-Click Fast Admin Sign In -->
+          <div class="quick-logins-box">
+            <span class="quick-logins-title">1-Click Fast Sign In</span>
+            <button class="quick-btn admin-quick" style="width:100%; padding:10px;" onclick="fillAndLogin('admin')">
+              <span>👑</span>
+              <strong>Log in as Prince Gbolon (Administrator)</strong>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. LOGGED-IN DASHBOARD VIEW (ADMIN / MEMBER / ORGANIZER)             -->
+    <!-- ===================================================================== -->
+    <div id="dashboardView" class="dashboard-view" style="display:none;">
+      
+      <!-- Top Session Bar with User Details and Role -->
+      <div class="user-session-bar">
+        <div class="user-session-info">
+          <div class="user-avatar" id="userAvatar">P</div>
+          <div class="user-meta">
+            <h3 id="userName">Prince Gbolon <span class="role-badge badge-admin" id="userRoleBadge">ADMIN</span></h3>
+            <p id="userContact">princegbolon3@gmail.com</p>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span> Log Out
+        </button>
+      </div>
+
+      <!-- Navigation Tabs for Active User -->
+      <div class="dash-tabs" id="dashTabs">
+        <!-- Injected dynamically based on role -->
+      </div>
+
+      <!-- MAIN TAB CONTENT CONTAINER -->
+      <div id="dashTabContent">
+        <!-- Dynamically rendered based on active tab -->
+      </div>
+
+    </div>
+
+    <!-- DOCUMENTATION VIEWER MODAL / SECTION -->
+    <div id="docViewerSection" class="card" style="display:none;">
+      <div class="card-title">
+        <span id="docViewerTitle">SRS Specification</span>
+        <button class="logout-btn" style="color:var(--text-main); border-color:var(--border);" onclick="closeDocViewer()">✕ Close</button>
+      </div>
+      <div id="docContentMarkdown" style="font-size:13px; line-height:1.6; color:#D1D5DB; max-height:450px; overflow-y:auto; padding:8px;"></div>
+    </div>
+
+  </main>
+
+  <!-- Interactive Feedback Toast -->
+  <div id="toastMessage" class="toast">
+    <span id="toastIcon">✨</span>
+    <span id="toastText">Operation completed successfully</span>
+  </div>
+
+  <!-- Install & Troubleshooting Modal -->
+  <div id="installGuideModal" class="modal-overlay" onclick="handleModalOverlayClick(event)">
+    <div class="modal-box">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:22px;">🛠️</span>
+          <h3 style="margin:0; font-size:18px; color:#F9FAFB;">How to Install the App</h3>
+        </div>
+        <button type="button" onclick="closeInstallGuide()" style="background:none; border:none; color:#9CA3AF; font-size:22px; cursor:pointer; padding:4px;">✕</button>
+      </div>
+
+      <p style="font-size:13px; color:#9CA3AF; margin-bottom:16px; line-height:1.5;">
+        Android phones have built-in security that can block downloaded apps. Follow these simple steps:
+      </p>
+
+      <!-- METHOD 1: Chrome Home Screen / Web Install -->
+      <div style="background:rgba(16, 185, 129, 0.12); border:1.5px solid #10B981; border-radius:14px; padding:16px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:18px;">⭐</span>
+          <strong style="color:#34D399; font-size:14px;">Fix Chrome "This app cannot be installed":</strong>
+        </div>
+        <p style="font-size:12px; color:#D1D5DB; margin-bottom:12px; line-height:1.4;">
+          If Chrome shows <em>"This app cannot be installed"</em>, do this simple 10-second fix to add it straight to your phone's home screen:
+        </p>
+        <div class="guide-step-card" style="margin-bottom:8px;">
+          <div class="guide-num">1</div>
+          <div style="font-size:13px; color:#E5E7EB; line-height:1.4;">
+            Tap Chrome's <strong>3 vertical dots (⋮)</strong> in the top right corner.
+          </div>
+        </div>
+        <div class="guide-step-card" style="margin-bottom:8px;">
+          <div class="guide-num">2</div>
+          <div style="font-size:13px; color:#E5E7EB; line-height:1.4;">
+            Scroll down the menu and tap <strong>"Add to Home screen"</strong> (or <strong>"Install to device"</strong>).
+          </div>
+        </div>
+        <div class="guide-step-card" style="margin-bottom:0;">
+          <div class="guide-num">3</div>
+          <div style="font-size:13px; color:#E5E7EB; line-height:1.4;">
+            Tap <strong>"Add"</strong>. The Digital Susu app icon appears immediately on your phone like any Play Store app!
+          </div>
+        </div>
+      </div>
+
+      <!-- METHOD 2: APK Troubleshooting -->
+      <div style="background:rgba(255, 255, 255, 0.04); border:1px solid rgba(255, 255, 255, 0.1); border-radius:14px; padding:16px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:18px;">📦</span>
+          <strong style="color:#F9FAFB; font-size:14px;">Method 2: If the APK says "App Not Installed"</strong>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <div style="color:#F59E0B; font-weight:700; font-size:12px; margin-bottom:4px;">⚠️ Issue: "Blocked by Play Protect" / "Unsafe app"</div>
+          <p style="font-size:12px; color:#9CA3AF; margin:0; line-height:1.4;">
+            Google Play Protect alerts whenever an app is downloaded from the internet. <strong>DO NOT tap "OK"</strong> (that cancels installation). Instead, tap <strong>"More details"</strong>, then tap <strong>"Install anyway"</strong>.
+          </p>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <div style="color:#F59E0B; font-weight:700; font-size:12px; margin-bottom:4px;">⚠️ Issue: "Phone not allowed to install unknown apps"</div>
+          <p style="font-size:12px; color:#9CA3AF; margin:0; line-height:1.4;">
+            Tap <strong>Settings</strong> on the message, turn ON the switch next to <strong>"Allow from this source"</strong>, then tap the Back button and tap <strong>Install</strong>.
+          </p>
+        </div>
+
+        <div>
+          <div style="color:#F59E0B; font-weight:700; font-size:12px; margin-bottom:4px;">⚠️ Issue: "App not installed as package is invalid"</div>
+          <p style="font-size:12px; color:#9CA3AF; margin:0; line-height:1.4;">
+            If you previously installed an older test version of Digital Susu on your phone, Android blocks updating it. <strong>Uninstall / delete the old app from your phone first</strong>, then tap the downloaded APK file.
+          </p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <a href="/download" download="DigitalSusu.apk" class="submit-auth-btn" style="text-decoration:none; margin:0; flex:1; text-align:center; padding:12px;" onclick="closeInstallGuide()">
+          ⬇️ Download APK (28 MB)
+        </a>
+        <button type="button" class="mode-btn active" style="flex:1; padding:12px;" onclick="closeInstallGuide()">
+          Got It, Thanks!
+        </button>
+      </div>
     </div>
   </div>
+
+  <script>
+    // System State
+    let currentUser = null;
+    let selectedPortal = 0; // 0: Member & Organizer, 1: Administrator
+    let isRegisterMode = false;
+    let selectedRegRole = 'MEMBER';
+    let currentDashTab = 'overview';
+    let activeCurrency = 'LRD';
+
+    // Seed Data
+    const usersDb = [
+      { id: 1, fullName: "Prince Gbolon", phone: "+231 77 000 0001", email: "princegbolon3@gmail.com", role: "ADMIN", password: "2004prada22", status: "ACTIVE" },
+      { id: 2, fullName: "Abraham Kollie", phone: "+231 77 123 4567", email: "abraham@susu.lr", role: "MEMBER", password: "member123", status: "ACTIVE" },
+      { id: 3, fullName: "Sarah Doe", phone: "+231 88 987 6543", email: "sarah@susu.lr", role: "ORGANIZER", password: "organizer123", status: "ACTIVE" },
+      { id: 4, fullName: "Mary V. Weah", phone: "+231 77 555 9999", email: "mary@susu.lr", role: "MEMBER", password: "member123", status: "ACTIVE" }
+    ];
+
+    let pendingApprovals = [
+      { id: 101, fullName: "Josephine Nimely", phone: "+231 77 444 1122", email: "josephine@susu.lr", role: "MEMBER", regDate: "Oct 13, 2026" },
+      { id: 102, fullName: "Ezekiel Gbotoe", phone: "+231 88 333 7788", email: "ezekiel@susu.lr", role: "ORGANIZER", regDate: "Oct 13, 2026" }
+    ];
+
+    let auditLogs = [
+      { time: "Just now", action: "GATEWAY_ONLINE", desc: "Dual portal login loaded. Member & Admin pathways ready." },
+      { time: "10:04 AM", action: "SYSTEM_INITIALIZED", desc: "Administrator Prince Gbolon provisioned." },
+      { time: "09:30 AM", action: "CYCLE_ADVANCE", desc: "Monrovia Market Circle completed Round #2 payout." }
+    ];
+
+    let susuCircles = [
+      { id: 1, name: "Monrovia Central Circle", code: "MCC-2026", round: 3, totalRounds: 12, targetLrd: 60000, potLrd: 18000, recipient: "Abraham Kollie", status: "ACTIVE" },
+      { id: 2, name: "Paynesville Traders Susu", code: "PTS-004", round: 7, totalRounds: 10, targetLrd: 100000, potLrd: 70000, recipient: "Mary V. Weah", status: "ACTIVE" },
+      { id: 3, name: "Red Light MoMo Circle", code: "RLM-101", round: 1, totalRounds: 8, targetLrd: 40000, potLrd: 5000, recipient: "Prince Gbolon", status: "FORMING" }
+    ];
+
+    let userBalance = {
+      lrd: 42500,
+      usd: 220
+    };
+
+    // Portal Switching
+    function switchPortal(portalIndex) {
+      selectedPortal = portalIndex;
+      const tabMem = document.getElementById('tabMemberPortal');
+      const tabAdm = document.getElementById('tabAdminPortal');
+      const memSelector = document.getElementById('memberModeSelector');
+      const formMemSign = document.getElementById('formMemberSignIn');
+      const formMemReg = document.getElementById('formMemberRegister');
+      const formAdm = document.getElementById('formAdminPortal');
+
+      if (portalIndex === 0) {
+        tabMem.classList.add('active');
+        tabAdm.classList.remove('active');
+        memSelector.style.display = 'grid';
+        formAdm.style.display = 'none';
+        switchAuthMode(isRegisterMode);
+      } else {
+        tabAdm.classList.add('active');
+        tabMem.classList.remove('active');
+        memSelector.style.display = 'none';
+        formMemSign.style.display = 'none';
+        formMemReg.style.display = 'none';
+        formAdm.style.display = 'block';
+      }
+    }
+
+    function switchAuthMode(register) {
+      isRegisterMode = register;
+      const btnIn = document.getElementById('btnModeSignIn');
+      const btnUp = document.getElementById('btnModeRegister');
+      const formSign = document.getElementById('formMemberSignIn');
+      const formReg = document.getElementById('formMemberRegister');
+
+      if (!register) {
+        btnIn.classList.add('active');
+        btnUp.classList.remove('active');
+        formSign.style.display = 'block';
+        formReg.style.display = 'none';
+      } else {
+        btnUp.classList.add('active');
+        btnIn.classList.remove('active');
+        formSign.style.display = 'none';
+        formReg.style.display = 'block';
+      }
+    }
+
+    function selectRegRole(role) {
+      selectedRegRole = role;
+      document.getElementById('chipMember').classList.toggle('active', role === 'MEMBER');
+      document.getElementById('chipOrganizer').classList.toggle('active', role === 'ORGANIZER');
+      document.getElementById('lblNoticeRole').textContent = role;
+    }
+
+    function togglePassVisibility(inputId) {
+      const el = document.getElementById(inputId);
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
+
+    // Login Handling
+    function handleLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('memberLoginId').value.trim();
+      const pass = document.getElementById('memberLoginPass').value.trim();
+
+      const user = usersDb.find(u => (u.phone === id || u.email.toLowerCase() === id.toLowerCase()) && u.password === pass);
+      if (user) {
+        logUserIn(user);
+      } else {
+        showToast("⚠️ Invalid login credentials. Please check your phone/email & password.", "❌");
+      }
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('adminLoginId').value.trim();
+      const pass = document.getElementById('adminLoginPass').value.trim();
+
+      const admin = usersDb.find(u => u.role === 'ADMIN' && (u.email.toLowerCase() === id.toLowerCase() || u.phone === id) && u.password === pass);
+      if (admin) {
+        logUserIn(admin);
+      } else {
+        showToast("⚠️ Incorrect Administrator credentials.", "🛡️");
+      }
+    }
+
+    function fillAndLogin(roleKey) {
+      if (roleKey === 'admin') {
+        const admin = usersDb.find(u => u.role === 'ADMIN');
+        logUserIn(admin);
+      } else if (roleKey === 'member') {
+        const mem = usersDb.find(u => u.fullName === "Abraham Kollie");
+        logUserIn(mem);
+      } else if (roleKey === 'organizer') {
+        const org = usersDb.find(u => u.fullName === "Sarah Doe");
+        logUserIn(org);
+      } else if (roleKey === 'mary') {
+        const mary = usersDb.find(u => u.fullName === "Mary V. Weah");
+        logUserIn(mary);
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regFullName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+
+      const newPending = {
+        id: Date.now(),
+        fullName: name,
+        phone: phone,
+        email: email || `${phone}@susu.lr`,
+        role: selectedRegRole,
+        regDate: "Today"
+      };
+
+      pendingApprovals.unshift(newPending);
+      auditLogs.unshift({
+        time: "Just now",
+        action: "REGISTRATION_SUBMITTED",
+        desc: `${name} registered as ${selectedRegRole} — pending Admin approval.`
+      });
+
+      showToast(`🎉 Registration submitted! Administrator Prince Gbolon must approve before login.`, "⏳");
+      switchAuthMode(false);
+    }
+
+    function logUserIn(user) {
+      currentUser = user;
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('dashboardView').style.display = 'flex';
+      document.getElementById('headerLogoutBtn').style.display = 'flex';
+
+      // Update Session Bar
+      const avatar = document.getElementById('userAvatar');
+      avatar.textContent = user.fullName.charAt(0);
+      avatar.className = user.role === 'ADMIN' ? 'user-avatar admin-avatar' : 'user-avatar';
+
+      document.getElementById('userName').innerHTML = `${user.fullName} <span class="role-badge ${user.role === 'ADMIN' ? 'badge-admin' : user.role === 'ORGANIZER' ? 'badge-organizer' : 'badge-member'}">${user.role}</span>`;
+      document.getElementById('userContact').textContent = `${user.email} • ${user.phone}`;
+
+      // Build Role-Specific Navigation Tabs
+      buildDashTabs(user.role);
+      showToast(`Welcome back, ${user.fullName}!`, "👋");
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('dashboardView').style.display = 'none';
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('headerLogoutBtn').style.display = 'none';
+      showToast("Logged out successfully.", "🚪");
+    }
+
+    function goHome() {
+      if (currentUser) {
+        setDashTab('overview');
+      }
+    }
+
+    // Role-Specific Navigation Tabs
+    function buildDashTabs(role) {
+      const tabsBar = document.getElementById('dashTabs');
+      let html = '';
+
+      if (role === 'ADMIN') {
+        html = `
+          <button class="dash-tab-btn active" onclick="setDashTab('overview')"><span>📊</span> Overview</button>
+          <button class="dash-tab-btn" onclick="setDashTab('approvals')"><span>⏳</span> Approvals (${pendingApprovals.length})</button>
+          <button class="dash-tab-btn" onclick="setDashTab('circles')"><span>🔄</span> Circles</button>
+          <button class="dash-tab-btn" onclick="setDashTab('audit')"><span>📜</span> Audit Logs</button>
+          <button class="dash-tab-btn" onclick="setDashTab('docs')"><span>📋</span> System Docs</button>
+        `;
+      } else if (role === 'ORGANIZER') {
+        html = `
+          <button class="dash-tab-btn active" onclick="setDashTab('overview')"><span>💼</span> Hub</button>
+          <button class="dash-tab-btn" onclick="setDashTab('circles')"><span>🔄</span> Manage Circles</button>
+          <button class="dash-tab-btn" onclick="setDashTab('contributions')"><span>💵</span> Contributions</button>
+          <button class="dash-tab-btn" onclick="setDashTab('momo')"><span>📱</span> Mobile Money</button>
+          <button class="dash-tab-btn" onclick="setDashTab('docs')"><span>📋</span> System Docs</button>
+        `;
+      } else {
+        html = `
+          <button class="dash-tab-btn active" onclick="setDashTab('overview')"><span>🏠</span> Dashboard</button>
+          <button class="dash-tab-btn" onclick="setDashTab('circles')"><span>🔄</span> My Susu</button>
+          <button class="dash-tab-btn" onclick="setDashTab('momo')"><span>📱</span> MoMo / Orange</button>
+          <button class="dash-tab-btn" onclick="setDashTab('loans')"><span>🤝</span> Micro-Loans</button>
+          <button class="dash-tab-btn" onclick="setDashTab('docs')"><span>📋</span> System Docs</button>
+        `;
+      }
+
+      tabsBar.innerHTML = html;
+      currentDashTab = 'overview';
+      renderTabContent();
+    }
+
+    function setDashTab(tabKey) {
+      currentDashTab = tabKey;
+      const btns = document.querySelectorAll('.dash-tab-btn');
+      btns.forEach(b => b.classList.remove('active'));
+      const activeBtn = Array.from(btns).find(b => b.textContent.toLowerCase().includes(tabKey.slice(0, 4)));
+      if (activeBtn) activeBtn.classList.add('active');
+      renderTabContent();
+    }
+
+    function renderTabContent() {
+      const container = document.getElementById('dashTabContent');
+      if (!currentUser) return;
+
+      if (currentUser.role === 'ADMIN') {
+        renderAdminTab(container);
+      } else if (currentUser.role === 'ORGANIZER') {
+        renderOrganizerTab(container);
+      } else {
+        renderMemberTab(container);
+      }
+    }
+
+    // =========================================================================
+    // ADMIN DASHBOARD RENDERING
+    // =========================================================================
+    function renderAdminTab(container) {
+      if (currentDashTab === 'overview') {
+        container.innerHTML = `
+          <div class="admin-stat-grid">
+            <div class="stat-card">
+              <div class="stat-card-title">Total Active Users</div>
+              <div class="stat-card-val">${usersDb.length}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-title">Pending Approvals</div>
+              <div class="stat-card-val" style="color:var(--accent-gold);">${pendingApprovals.length}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-title">Active Susu Circles</div>
+              <div class="stat-card-val">${susuCircles.length}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-title">Platform Susu Volume</div>
+              <div class="stat-card-val" style="color:var(--success);">200,000 LRD</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>⏳ Urgent Pending Approvals</span>
+              <button class="auth-get-btn" onclick="setDashTab('approvals')">View All</button>
+            </div>
+            ${pendingApprovals.length === 0 ? '<p style="color:var(--text-muted); font-size:13px;">No pending users waiting for approval.</p>' : 
+              pendingApprovals.slice(0, 2).map(u => `
+                <div class="approval-item">
+                  <div>
+                    <strong style="color:#fff; font-size:13px;">${u.fullName}</strong>
+                    <div style="font-size:11px; color:var(--text-muted);">${u.phone} • Role: <strong style="color:var(--accent-gold);">${u.role}</strong></div>
+                  </div>
+                  <div class="approval-actions">
+                    <button class="btn-approve" onclick="approveUser(${u.id})">Approve</button>
+                    <button class="btn-reject" onclick="rejectUser(${u.id})">Reject</button>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">
+              <span>📜 Real-Time Audit Log</span>
+            </div>
+            ${auditLogs.slice(0, 3).map(l => `
+              <div class="audit-log-item">
+                <span class="audit-tag">${l.action}</span>
+                <div style="color:#E5E7EB; margin-bottom:2px;">${l.desc}</div>
+                <span style="color:var(--text-dim); font-size:11px;">${l.time}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (currentDashTab === 'approvals') {
+        container.innerHTML = `
+          <div class="card">
+            <div class="card-title">
+              <span>User Approval Requests</span>
+              <span class="role-badge badge-admin">${pendingApprovals.length} PENDING</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+              As System Administrator (Prince Gbolon), you must verify identity and approve each new member or organizer registration before they can log in.
+            </p>
+            ${pendingApprovals.length === 0 ? '<p style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">All accounts reviewed! Zero pending approvals.</p>' : 
+              pendingApprovals.map(u => `
+                <div class="approval-item">
+                  <div>
+                    <strong style="color:#fff; font-size:14px;">${u.fullName}</strong>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                      📞 ${u.phone} • ✉️ ${u.email}
+                    </div>
+                    <div style="font-size:11px; color:var(--accent-gold); margin-top:3px;">
+                      Role Requested: <strong>${u.role}</strong> • Registered: ${u.regDate}
+                    </div>
+                  </div>
+                  <div class="approval-actions">
+                    <button class="btn-approve" onclick="approveUser(${u.id})">✓ Accept</button>
+                    <button class="btn-reject" onclick="rejectUser(${u.id})">✕ Reject</button>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        `;
+      } else if (currentDashTab === 'circles') {
+        renderCirclesView(container);
+      } else if (currentDashTab === 'audit') {
+        container.innerHTML = `
+          <div class="card">
+            <div class="card-title">
+              <span>Complete System Audit Trail</span>
+            </div>
+            ${auditLogs.map(l => `
+              <div class="audit-log-item">
+                <span class="audit-tag">${l.action}</span>
+                <div style="color:#E5E7EB; margin-bottom:2px;">${l.desc}</div>
+                <span style="color:var(--text-dim); font-size:11px;">${l.time}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (currentDashTab === 'docs') {
+        renderDocsTab(container);
+      }
+    }
+
+    function approveUser(id) {
+      const idx = pendingApprovals.findIndex(u => u.id === id);
+      if (idx !== -1) {
+        const u = pendingApprovals[idx];
+        usersDb.push({
+          id: u.id,
+          fullName: u.fullName,
+          phone: u.phone,
+          email: u.email,
+          role: u.role,
+          password: "password123",
+          status: "ACTIVE"
+        });
+        pendingApprovals.splice(idx, 1);
+        auditLogs.unshift({
+          time: "Just now",
+          action: "USER_APPROVED",
+          desc: `Admin Prince Gbolon approved ${u.fullName} (${u.role}).`
+        });
+        showToast(`Approved ${u.fullName}! They can now log in.`, "✅");
+        renderTabContent();
+      }
+    }
+
+    function rejectUser(id) {
+      const idx = pendingApprovals.findIndex(u => u.id === id);
+      if (idx !== -1) {
+        const u = pendingApprovals[idx];
+        pendingApprovals.splice(idx, 1);
+        auditLogs.unshift({
+          time: "Just now",
+          action: "USER_REJECTED",
+          desc: `Admin Prince Gbolon rejected application for ${u.fullName}.`
+        });
+        showToast(`Rejected registration for ${u.fullName}.`, "⚠️");
+        renderTabContent();
+      }
+    }
+
+    // =========================================================================
+    // MEMBER DASHBOARD RENDERING
+    // =========================================================================
+    function renderMemberTab(container) {
+      if (currentDashTab === 'overview') {
+        container.innerHTML = `
+          <!-- Wallet Balance Hero -->
+          <div class="wallet-hero">
+            <div class="wallet-header">
+              <span style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Available Wallet Balance</span>
+              <div style="display:flex; gap:4px; background:rgba(0,0,0,0.3); border-radius:999px; padding:2px;">
+                <button class="currency-btn ${activeCurrency === 'LRD' ? 'active' : ''}" onclick="toggleCurrency('LRD')">LRD</button>
+                <button class="currency-btn ${activeCurrency === 'USD' ? 'active' : ''}" onclick="toggleCurrency('USD')">USD</button>
+              </div>
+            </div>
+
+            <div class="wallet-balance">
+              ${activeCurrency === 'LRD' ? `${userBalance.lrd.toLocaleString()} LRD` : `$${userBalance.usd.toLocaleString()} USD`}
+            </div>
+
+            <div class="action-grid">
+              <div class="action-button" onclick="triggerMomo('deposit')">
+                <span class="action-icon">📥</span>
+                <span class="action-label">Deposit</span>
+              </div>
+              <div class="action-button" onclick="triggerMomo('withdraw')">
+                <span class="action-icon">📤</span>
+                <span class="action-label">Cash Out</span>
+              </div>
+              <div class="action-button" onclick="contributeToSusu()">
+                <span class="action-icon">🔄</span>
+                <span class="action-label">Pay Susu</span>
+              </div>
+              <div class="action-button" onclick="setDashTab('loans')">
+                <span class="action-icon">🤝</span>
+                <span class="action-label">Loan</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Susu Circles -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">
+              <span>My Active Susu Circle</span>
+              <span class="role-badge badge-member">ROUND 3 OF 12</span>
+            </div>
+            <p style="font-size:13px; color:#E5E7EB; margin-bottom:8px;">
+              <strong>Monrovia Central Circle</strong> • Target Pot: 60,000 LRD
+            </p>
+            <div style="background:rgba(0,0,0,0.25); border-radius:10px; padding:10px; font-size:12px; margin-bottom:12px;">
+              Next Payout Turn: <strong style="color:var(--success);">Abraham Kollie</strong> (Friday, Oct 17)
+            </div>
+            <button class="submit-auth-btn" style="width:100%; padding:10px; font-size:13px;" onclick="contributeToSusu()">
+              💵 Pay Round Contribution (5,000 LRD)
+            </button>
+          </div>
+        `;
+      } else if (currentDashTab === 'circles') {
+        renderCirclesView(container);
+      } else if (currentDashTab === 'momo') {
+        renderMomoView(container);
+      } else if (currentDashTab === 'loans') {
+        renderLoansView(container);
+      } else if (currentDashTab === 'docs') {
+        renderDocsTab(container);
+      }
+    }
+
+    // =========================================================================
+    // ORGANIZER DASHBOARD RENDERING
+    // =========================================================================
+    function renderOrganizerTab(container) {
+      if (currentDashTab === 'overview') {
+        container.innerHTML = `
+          <div class="card">
+            <div class="card-title">
+              <span>Organizer Management Hub</span>
+              <span class="role-badge badge-organizer">ORGANIZER</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+              Create rotating credit groups, verify member payments, and disburse scheduled payouts.
+            </p>
+            <div class="admin-stat-grid">
+              <div class="stat-card">
+                <div class="stat-card-title">Managed Circles</div>
+                <div class="stat-card-val">2</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-title">Total Members</div>
+                <div class="stat-card-val">24</div>
+              </div>
+            </div>
+            <button class="submit-auth-btn" style="width:100%; padding:12px;" onclick="showToast('Creating new group dialog...', '➕')">
+              ➕ Create New Susu Group
+            </button>
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <div class="card-title">Managed Groups</div>
+            ${susuCircles.map(c => `
+              <div style="background:var(--surface-card); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="color:#fff;">${c.name}</strong>
+                  <span class="role-badge badge-member">${c.status}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+                  Round: ${c.round}/${c.totalRounds} • Pot: ${c.potLrd.toLocaleString()} LRD
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (currentDashTab === 'circles') {
+        renderCirclesView(container);
+      } else if (currentDashTab === 'contributions') {
+        container.innerHTML = `
+          <div class="card">
+            <div class="card-title">Record Member Payment</div>
+            <form onsubmit="event.preventDefault(); showToast('Contribution recorded and SMS receipt sent!', '✅');" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="form-group">
+                <label class="form-label">Member Name</label>
+                <input class="form-input" value="Abraham Kollie" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Amount (LRD)</label>
+                <input class="form-input" value="5000" type="number" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <select class="form-input" style="padding-left:14px;">
+                  <option>Lonestar MTN MoMo (*156#)</option>
+                  <option>Orange Money (*144#)</option>
+                  <option>Cash Handover</option>
+                </select>
+              </div>
+              <button class="submit-auth-btn">Record & Issue Digital Receipt</button>
+            </form>
+          </div>
+        `;
+      } else if (currentDashTab === 'momo') {
+        renderMomoView(container);
+      } else if (currentDashTab === 'docs') {
+        renderDocsTab(container);
+      }
+    }
+
+    // SHARED VIEWS: CIRCLES, MOMO, LOANS, DOCS
+    function renderCirclesView(container) {
+      container.innerHTML = `
+        <div class="card">
+          <div class="card-title">
+            <span>Susu Savings Circles</span>
+            <button class="auth-get-btn" onclick="showToast('Circle list refreshed', '🔄')">Refresh</button>
+          </div>
+          ${susuCircles.map(c => `
+            <div style="background:var(--surface-card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:#FFFFFF; font-size:14px;">${c.name}</strong>
+                <span class="role-badge badge-member">${c.code}</span>
+              </div>
+              <div style="font-size:12px; color:#A7F3D0; margin:6px 0;">
+                Target: ${c.targetLrd.toLocaleString()} LRD • Round ${c.round} of ${c.totalRounds}
+              </div>
+              <div style="font-size:11px; color:var(--text-muted);">
+                Current Hand Recipient: <strong style="color:#fff;">${c.recipient}</strong>
+              </div>
+              <div style="margin-top:10px; background:rgba(0,0,0,0.3); border-radius:999px; height:6px; overflow:hidden;">
+                <div style="background:var(--primary-light); height:100%; width:${(c.potLrd / c.targetLrd) * 100}%;"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderMomoView(container) {
+      container.innerHTML = `
+        <div class="card">
+          <div class="card-title">Mobile Money Gateway</div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+            Seamless integration with Liberia telecom operators for instant deposits and cash-outs.
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:rgba(255, 204, 0, 0.1); border:1px solid rgba(255, 204, 0, 0.3); border-radius:12px; padding:14px; text-align:center;">
+              <h4 style="color:#FFCC00; font-size:14px; margin-bottom:4px;">MTN MoMo</h4>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Lonestar Cell (*156#)</p>
+              <button class="auth-get-btn" style="border-color:#FFCC00; color:#FFCC00;" onclick="triggerMomo('Lonestar MTN')">Deposit via MoMo</button>
+            </div>
+            <div style="background:rgba(255, 121, 0, 0.1); border:1px solid rgba(255, 121, 0, 0.3); border-radius:12px; padding:14px; text-align:center;">
+              <h4 style="color:#FF7900; font-size:14px; margin-bottom:4px;">Orange Money</h4>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Orange Liberia (*144#)</p>
+              <button class="auth-get-btn" style="border-color:#FF7900; color:#FF7900;" onclick="triggerMomo('Orange Money')">Deposit via Orange</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLoansView(container) {
+      container.innerHTML = `
+        <div class="card">
+          <div class="card-title">Emergency Micro-Loan</div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+            Low-interest community micro-loans backed by your Susu group shares.
+          </p>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label">Loan Amount (LRD)</label>
+            <input class="form-input" id="loanAmountInput" type="number" value="10000" oninput="calculateLoan()">
+          </div>
+          <div style="background:rgba(0,0,0,0.25); border-radius:10px; padding:12px; font-size:12px; margin-bottom:14px;">
+            <div>Interest Rate: <strong>5% fixed</strong></div>
+            <div>Repayment: <strong id="loanRepaymentText" style="color:var(--success);">10,500 LRD</strong> in 30 days</div>
+          </div>
+          <button class="submit-auth-btn" style="width:100%;" onclick="applyLoan()">
+            Instant Loan Application
+          </button>
+        </div>
+      `;
+    }
+
+    function calculateLoan() {
+      const val = parseFloat(document.getElementById('loanAmountInput').value) || 0;
+      const total = val * 1.05;
+      document.getElementById('loanRepaymentText').textContent = `${total.toLocaleString()} LRD`;
+    }
+
+    function applyLoan() {
+      const val = parseFloat(document.getElementById('loanAmountInput').value) || 0;
+      userBalance.lrd += val;
+      showToast(`🎉 Loan of ${val.toLocaleString()} LRD disbursed to your MoMo wallet!`, "🤝");
+      setDashTab('overview');
+    }
+
+    function renderDocsTab(container) {
+      container.innerHTML = `
+        <div class="card">
+          <div class="card-title">Official System Documentation</div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+            Live architectural and requirement specifications built for Digital Susu Liberia.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="action-button" style="flex-direction:row; justify-content:space-between; padding:12px;" onclick="loadDoc('srs', 'Software Requirements Specification (SRS)')">
+              <span>📄 Software Requirements (SRS)</span>
+              <span>➔</span>
+            </button>
+            <button class="action-button" style="flex-direction:row; justify-content:space-between; padding:12px;" onclick="loadDoc('prd', 'Product Requirements Document (PRD)')">
+              <span>📋 Product Requirements (PRD)</span>
+              <span>➔</span>
+            </button>
+            <button class="action-button" style="flex-direction:row; justify-content:space-between; padding:12px;" onclick="loadDoc('sdd', 'Software Design Document (SDD)')">
+              <span>📐 Software Design (SDD)</span>
+              <span>➔</span>
+            </button>
+            <button class="action-button" style="flex-direction:row; justify-content:space-between; padding:12px;" onclick="loadDoc('ssd', 'System Sequence Diagram (SSD)')">
+              <span>🔄 System Sequence Diagrams (SSD)</span>
+              <span>➔</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadDoc(docKey, title) {
+      const section = document.getElementById('docViewerSection');
+      const titleEl = document.getElementById('docViewerTitle');
+      const contentEl = document.getElementById('docContentMarkdown');
+
+      titleEl.textContent = title;
+      contentEl.innerHTML = '<p style="color:var(--text-muted);">Loading document...</p>';
+      section.style.display = 'block';
+      section.scrollIntoView({ behavior: 'smooth' });
+
+      try {
+        const resp = await fetch(`/api/doc/${docKey}`);
+        if (!resp.ok) throw new Error('Failed to load doc');
+        const text = await resp.text();
+        contentEl.innerHTML = marked.parse(text);
+      } catch (err) {
+        contentEl.innerHTML = `<p style="color:var(--danger);">Error loading document: ${err.message}</p>`;
+      }
+    }
+
+    function closeDocViewer() {
+      document.getElementById('docViewerSection').style.display = 'none';
+    }
+
+    function toggleCurrency(curr) {
+      activeCurrency = curr;
+      renderTabContent();
+    }
+
+    function triggerMomo(provider) {
+      showToast(`Initiating ${provider} Mobile Money prompt on your phone...`, "📱");
+    }
+
+    function contributeToSusu() {
+      if (userBalance.lrd >= 5000) {
+        userBalance.lrd -= 5000;
+        showToast("🎉 Paid 5,000 LRD contribution to Monrovia Central Circle! Receipt issued.", "✅");
+        renderTabContent();
+      } else {
+        showToast("⚠️ Insufficient balance in wallet. Please deposit first.", "❌");
+      }
+    }
+
+    function showToast(text, icon = "✨") {
+      const toast = document.getElementById('toastMessage');
+      document.getElementById('toastText').textContent = text;
+      document.getElementById('toastIcon').textContent = icon;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // PWA Install Prompt
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btns = [document.getElementById('headerInstallBtn')];
+      btns.forEach(b => { if (b) b.style.display = 'flex'; });
+    });
+
+    function openInstallGuide() {
+      const modal = document.getElementById('installGuideModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeInstallGuide() {
+      const modal = document.getElementById('installGuideModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target && e.target.id === 'installGuideModal') {
+        closeInstallGuide();
+      }
+    }
+
+    async function triggerPwaInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          showToast("App installed successfully! Enjoy Digital Susu.", "🎉");
+        }
+        deferredPrompt = null;
+      } else {
+        // Automatically open the friendly step-by-step installation guide!
+        openInstallGuide();
+      }
+    }
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW register failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

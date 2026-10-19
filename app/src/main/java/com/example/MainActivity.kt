@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
                 var showJoinGroupDialog by remember { mutableStateOf(false) }
                 var showGroupDropdown by remember { mutableStateOf(false) }
                 var showHowItWorksDialog by remember { mutableStateOf(false) }
+                var showDownloadAppDialog by remember { mutableStateOf(false) }
 
                 // Navigation State per active role
                 var currentNavigationTab by remember { mutableIntStateOf(0) }
@@ -95,6 +96,10 @@ class MainActivity : ComponentActivity() {
                 // Global Dialogs
                 if (showHowItWorksDialog) {
                     HowItWorksDialog(onDismiss = { showHowItWorksDialog = false })
+                }
+
+                if (showDownloadAppDialog) {
+                    DownloadAppDialog(onDismiss = { showDownloadAppDialog = false })
                 }
 
                 if (showEditProfileDialog && currentUser != null) {
@@ -165,6 +170,7 @@ class MainActivity : ComponentActivity() {
                             onRegister = { fullName, phone, email, role, password ->
                                 viewModel.registerUser(fullName, phone, email, role, password)
                             },
+                            onDownloadApp = { showDownloadAppDialog = true },
                             modifier = Modifier.padding(authPadding)
                         )
                     }
@@ -214,6 +220,18 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         actions = {
+                                            // Download App to Phone (APK)
+                                            IconButton(
+                                                onClick = { showDownloadAppDialog = true },
+                                                modifier = Modifier.testTag("admin_download_app_btn")
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.InstallMobile,
+                                                    contentDescription = "Download App to Phone",
+                                                    tint = SusuEmeraldPrimary
+                                                )
+                                            }
+
                                             // Register user as admin
                                             IconButton(
                                                 onClick = { showRegisterDialog = true },
@@ -476,6 +494,17 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         actions = {
+                                            IconButton(
+                                                onClick = { showDownloadAppDialog = true },
+                                                modifier = Modifier.testTag("organizer_download_app_btn")
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.InstallMobile,
+                                                    contentDescription = "Download App to Phone",
+                                                    tint = SusuEmeraldPrimary
+                                                )
+                                            }
+
                                             IconButton(onClick = { showHowItWorksDialog = true }) {
                                                 Icon(
                                                     Icons.Default.HelpOutline,
@@ -789,6 +818,17 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         actions = {
+                                            IconButton(
+                                                onClick = { showDownloadAppDialog = true },
+                                                modifier = Modifier.testTag("member_download_app_btn")
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.InstallMobile,
+                                                    contentDescription = "Download App to Phone",
+                                                    tint = SusuEmeraldPrimary
+                                                )
+                                            }
+
                                             IconButton(onClick = { showHowItWorksDialog = true }) {
                                                 Icon(
                                                     Icons.Default.HelpOutline,
